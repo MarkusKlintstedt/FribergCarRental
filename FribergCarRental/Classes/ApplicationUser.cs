@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace FribergCarRental.Classes
 {
-    public class Customer
+    public class ApplicationUser : IdentityUser
     {
-        [Required]
-        public int CustomerId { get; set; }
         [Required]
         [MaxLength(50)]
         public string FirstName { get; set; } = "";
@@ -21,12 +20,6 @@ namespace FribergCarRental.Classes
         [Required]
         [MaxLength(10)]
         public string ZipCode { get; set; } = "";
-        [Required]
-        [MaxLength(15)]
-        public string Phone { get; set; } = "";
-
-        //Navigation
-        //public virtual List<Booking> Bookings { get; set; } = new List<Booking>();
-
+        public virtual List<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }

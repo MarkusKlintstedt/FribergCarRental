@@ -1,15 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using FribergCarRental.Classes;
 
-namespace FribergCarRental.Classes
+namespace FribergCarRental.Models
 {
-    public class Booking
+    public class BookingViewModel
     {
-        public int BookingId { get; set; }
-        [Required]
+        public int Id { get; set; }
         public DateOnly RentStartDate { get; set; }
-        [Required]
         public DateOnly RentEndDate { get; set; }
         public required Car Car { get; set; }
         public required ApplicationUser ApplicationUser { get; set; }
+
     }
 }

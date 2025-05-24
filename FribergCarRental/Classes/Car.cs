@@ -9,6 +9,10 @@ namespace FribergCarRental.Classes
         [Required]
         [MaxLength(50)]
         public string Brand { get; set; } = "";
+        [MaxLength(50)]
+        public string ModelName { get; set; } = "";
+        [MaxLength(100)]
+        public string DiaplayBrandModel => $"{Brand} {ModelName}";
         [MaxLength(1000)]
         public string Description { get; set; } = "";
         [Required]

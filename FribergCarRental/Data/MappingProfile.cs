@@ -9,6 +9,7 @@ namespace FribergCarRental.Data
         public MappingProfile()
         {
             CreateMap<Car, CarViewModel>().ReverseMap();
+            CreateMap<Booking, BookingViewModel>().ReverseMap();
         }
     }
 }

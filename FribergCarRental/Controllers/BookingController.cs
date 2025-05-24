@@ -5,97 +5,97 @@ using FribergCarRental.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace FribergCarRental.Controllers
 {
-    public class CarsController : Controller
+    public class BookingController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
-        private List<CarViewModel> carViewModels = new List<CarViewModel>();
+        private List<BookingViewModel> _bookingViewModels = new();
 
 
-        public CarsController(ApplicationDbContext context, IMapper mapper)
+        public BookingController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        // GET: Cars
+        // GET: BookingViewModels
         public async Task<IActionResult> Index()
         {
-            var cars = await _context.Cars.ToListAsync();
-            carViewModels = _mapper.Map<List<CarViewModel>>(cars);
-            return View(carViewModels);
+            var bookings = await _context.Bookings.ToListAsync();
+            _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookings);
+            return View(_bookingViewModels);
         }
 
-        // GET: Cars/Details/5
+        // GET: BookingViewModels/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
+            var booking = await _context.Bookings.Include(b => b.Car).FirstOrDefaultAsync(m => m.BookingId == id);
+            var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
 
-            var car = await _context.Cars
-                .FirstOrDefaultAsync(m => m.CarId == id);
-            var carViewModel = _mapper.Map<CarViewModel>(car);
-            if (carViewModel == null)
+            if (bookingViewModel == null)
             {
                 return NotFound();
             }
 
-            return View(carViewModel);
+            return View(bookingViewModel);
         }
 
-        // GET: Cars/Create
+        // GET: BookingViewModels/Create
         public IActionResult Create()
         {
+            //ViewBag.ReservedCar = id;
             return View();
         }
 
-        // POST: Cars/Create
+        // POST: BookingViewModels/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CarId,Brand,Description,RentPricePerDay")] CarViewModel carViewModel)
+        public async Task<IActionResult> Create([Bind("Id,RentStartDate,RentEndDate")] BookingViewModel bookingViewModel)
         {
             if (ModelState.IsValid)
             {
-                var car = _mapper.Map<Car>(carViewModel);
-                _context.Add(car);
+                var booking = _mapper.Map<Booking>(bookingViewModel);
+                _context.Add(booking);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(carViewModel);
+            return View(bookingViewModel);
         }
 
-        // Fix for the CS0029 error in the Edit method.  
+        // GET: BookingViewModels/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
+            var booking = await _context.Bookings.FirstOrDefaultAsync(m => m.BookingId == id);
+            var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
 
-            var car = await _context.Cars.FindAsync(id);
-            var carViewModel = _mapper.Map<CarViewModel>(car);
-
-            if (carViewModel == null)
+            if (bookingViewModel == null)
             {
                 return NotFound();
             }
-            return View(carViewModel);
+            return View(bookingViewModel);
         }
 
-        // POST: Cars/Edit/5
+        // POST: BookingViewModels/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CarId,Brand,Description,RentPricePerDay")] CarViewModel carViewModel)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,RentStartDate,RentEndDate")] BookingViewModel bookingViewModel)
         {
-            if (id != carViewModel.CarId)
+            if (id != bookingViewModel.Id)
             {
                 return NotFound();
             }
@@ -104,13 +104,13 @@ namespace FribergCarRental.Controllers
             {
                 try
                 {
-                    var car = _mapper.Map<Car>(carViewModel); //Här är Fredriks exempel annorlunda. Funkar??
-                    _context.Update(car);
+                    var booking = _mapper.Map<Booking>(bookingViewModel);
+                    _context.Update(booking);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CarViewModelExists(carViewModel.CarId))
+                    if (!BookingViewModelExists(bookingViewModel.Id))
                     {
                         return NotFound();
                     }
@@ -121,46 +121,46 @@ namespace FribergCarRental.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(carViewModel);
+            return View(bookingViewModel);
         }
 
-        // GET: Cars/Delete/5
+        // GET: BookingViewModels/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-
-            var car = await _context.Cars
-                .FirstOrDefaultAsync(m => m.CarId == id);
-            var carViewModel = _mapper.Map<CarViewModel>(car);
-            if (carViewModel == null)
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(m => m.BookingId == id);
+            var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
+            if (bookingViewModel == null)
             {
                 return NotFound();
             }
 
-            return View(carViewModel);
+            return View(bookingViewModel);
         }
 
-        // POST: Cars/Delete/5
+        // POST: BookingViewModels/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var car = await _context.Cars.FindAsync(id);
-            if (car != null)
+
+            var booking = await _context.Bookings.FindAsync(id);
+            if (booking != null)
             {
-                _context.Cars.Remove(car);
+                _context.Bookings.Remove(booking);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CarViewModelExists(int id)
+        private bool BookingViewModelExists(int id)
         {
-            return _context.Cars.Any(e => e.CarId == id);
+            return _context.Bookings.Any(e => e.BookingId == id);
         }
     }
 }
