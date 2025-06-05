@@ -1,3 +1,4 @@
+using FribergCarRental.Classes;
 using FribergCarRental.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,12 +17,18 @@ namespace FribergCarRental
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
             builder.Services.AddAutoMapper(typeof(MappingProfile));
-
+            //builder.Services.AddScoped<IRepository<Booking>, BookingRepository>();
+            builder.Services.AddScoped<BookingRepository>();
+            //builder.Services.AddScoped<IRepository<Car>, CarRepository>();
+            builder.Services.AddScoped<CarRepository>();
+            //builder.Services.AddScoped<IRepository<Image>, ImageRepository>();
+            builder.Services.AddScoped<ImageRepository>();
+            builder.Services.AddScoped<ApplicationUserRepository>();
 
             var app = builder.Build();
 

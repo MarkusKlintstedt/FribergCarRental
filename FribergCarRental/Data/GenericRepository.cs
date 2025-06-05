@@ -2,7 +2,7 @@
 {
     public abstract class GenericRepository<T> : IRepository<T> where T : class
     {
-        private ApplicationDbContext applicationDbContext;
+        private protected ApplicationDbContext applicationDbContext;
         public GenericRepository(ApplicationDbContext applicationDbContext)
         {
             this.applicationDbContext = applicationDbContext;
@@ -19,7 +19,7 @@
             applicationDbContext.Remove<T>(entity);
         }
 
-        public virtual T Get(int id)
+        public virtual T GetById(int? id)
         {
             return applicationDbContext.Find<T>(id);
         }

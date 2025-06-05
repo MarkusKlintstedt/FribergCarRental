@@ -1,0 +1,66 @@
+﻿@model IEnumerable<CarViewModel>
+
+@{
+    ViewData["Title"] = "Cars";
+}
+
+<h1>List of cars</h1>
+
+<p>
+    <a asp-action="CreateCar">Add new car</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Image
+            </th>
+            <th>
+                Model
+            </th>
+            <th>
+                Description
+            </th>
+            <th>
+                Price/day (SEK)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @if (item.Images != null && item.Images.Any())
+                    {
+                        string imgPath = item.Images.First().Path;
+                        <img src="@imgPath" alt="Car image" style="max-height:100px;" />
+                    }
+                    else
+                    {
+                        <span>No image available</span>
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Brand) @Html.DisplayFor(modelItem => item.ModelName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RentPricePerDay)
+                </td>
+                <td>
+                    <a asp-action="EditCar" asp-route-id="@item.CarId">Edit</a>
+                    <a asp-action="Images" asp-route-id="@item.CarId">Images</a>
+                    <a asp-action="DeleteCar" asp-route-id="@item.CarId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    <a asp-controller="Admin" asp-action="Index">Back to main admin page</a>
+</div>

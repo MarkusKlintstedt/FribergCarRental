@@ -7,5 +7,10 @@ namespace FribergCarRental.Data
         public ImageRepository(ApplicationDbContext applicationDbContext) : base(applicationDbContext)
         {
         }
+
+        public IEnumerable<Image> GetAllImagesByCarId(int id)
+        {
+            return applicationDbContext.Images.Where(i => i.Car.CarId == id).ToList();
+        }
     }
 }

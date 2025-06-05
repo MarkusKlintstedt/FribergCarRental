@@ -1,0 +1,50 @@
+﻿@model CarViewModel
+
+@{
+    ViewData["Title"] = "Images";
+}
+
+<h2>Images for @Model.Brand @Model.ModelName</h2>
+<br />
+<br />
+ 
+<form method="post" asp-action="AddImage">
+   <input type="hidden" name="id" value="@Model.CarId" />
+   <div class="form-group">
+       <label for="newImagePath">Image path:</label>
+       <input type="text" id="newImagePath" name="newImagePath" class="form-control" />
+   </div>
+   <button type="submit" class="btn btn-primary">Add image</button>
+</form>
+
+<br />
+<br />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Image
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var image in Model.Images) {
+        <tr>
+            <td>
+                <img src="@image.Path" alt="Car image" style="max-height:100px;" />
+            </td>
+            <td>
+                <a asp-action="DeleteImage" asp-route-imageId="@image.ImageId" asp-route-id="@Model.CarId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<div>
+    <a asp-action="Cars">Back to list of cars</a>
+    <br />
+    <a asp-controller="Admin" asp-action="Index">Back to main admin page</a>
+</div>

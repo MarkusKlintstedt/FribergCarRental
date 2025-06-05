@@ -4,7 +4,7 @@
     {
         T Add(T entity);
         void Delete(T entity);
-        T Get(int id);
+        T GetById(int? id);
         IEnumerable<T> GetAll();
         T Update(T entity);
         void SaveChanges();

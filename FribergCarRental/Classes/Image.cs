@@ -4,11 +4,11 @@ namespace FribergCarRental.Classes
 {
     public class Image
     {
-        [Required]
         public int ImageId { get; set; }
         [Required]
         [MaxLength(100)]
         public string Path { get; set; } = "";
-        public required Car Car { get; set; }
+        public int CarId { get; set; }
+        public Car Car { get; set; }
     }
 }

@@ -7,5 +7,6 @@
         public string ModelName { get; set; } = "";
         public string Description { get; set; } = "";
         public int RentPricePerDay { get; set; }
+        public List<ImageViewModel> Images { get; set; } = new List<ImageViewModel>();
     }
 }

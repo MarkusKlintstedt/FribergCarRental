@@ -1,0 +1,42 @@
+﻿@model IEnumerable<FribergCarRental.Models.BookingViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Car</th>
+            <th>
+                @Html.DisplayNameFor(model => model.RentStartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RentEndDate)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Car.DisplayBrandModel)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.RentStartDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RentEndDate)
+                </td>
+                <td>
+                    <a asp-action="DeleteBooking" asp-route-id="@item.BookingId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
