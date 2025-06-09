@@ -7,26 +7,33 @@ namespace FribergCarRental.Controllers
 {
     public class CarsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        //private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
-        private List<CarViewModel> carViewModels = new List<CarViewModel>();
+        private List<CarViewModel> _carViewModels = new List<CarViewModel>();
         private CarRepository _carRepository;
+        private ImageRepository _imageRepository;
 
 
-        public CarsController(ApplicationDbContext context, IMapper mapper)
+        public CarsController(ApplicationDbContext context, IMapper mapper, CarRepository carRepository, ImageRepository imageRepository)
         {
-            _context = context;
+            //_context = context;
             _mapper = mapper;
-            _carRepository = new CarRepository(_context);
+            _carRepository = carRepository;
+            _imageRepository = imageRepository;
         }
 
         // GET: Cars
         public async Task<IActionResult> Index()
         {
-            var cars = _carRepository.GetAll();
+            var cars = await _carRepository.GetAllAsync();
             //var cars = await _context.Cars.ToListAsync();
-            carViewModels = _mapper.Map<List<CarViewModel>>(cars);
-            return View(carViewModels);
+            _carViewModels = _mapper.Map<List<CarViewModel>>(cars);
+            foreach (var car in _carViewModels)
+            {
+                car.Images = _mapper.Map<List<ImageViewModel>>(await _imageRepository.GetAllImagesByCarIdAsync(car.CarId));
+                //var image = car.Images.FirstOrDefault();
+            }
+            return View(_carViewModels);
         }
 
         // GET: Cars/Details/5
@@ -37,7 +44,7 @@ namespace FribergCarRental.Controllers
                 return NotFound();
             }
 
-            var car = _carRepository.GetById(id);
+            var car = await _carRepository.GetByIdAsync(id);
             //var car = await _context.Cars
             //    .FirstOrDefaultAsync(m => m.CarId == id);
             var carViewModel = _mapper.Map<CarViewModel>(car);
@@ -48,6 +55,17 @@ namespace FribergCarRental.Controllers
 
             return View(carViewModel);
         }
+
+        public async Task<IActionResult> Images(int id)
+        {
+            var car = await _carRepository.GetByIdAsync(id);
+            var images = await _imageRepository.GetAllImagesByCarIdAsync(id);
+
+            var viewModel = _mapper.Map<CarViewModel>(car);
+            viewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
+            return View(viewModel);
+        }
+
 
         //// GET: Cars/Create
         //public IActionResult Create()

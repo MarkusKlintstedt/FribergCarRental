@@ -14,15 +14,17 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="BookingId" />
             <div class="form-group">
-                <label asp-for="RentStartDate" class="control-label"></label>
+                <label asp-for="RentStartDate" class="control-label">Start date</label>
                 <input asp-for="RentStartDate" class="form-control" />
                 <span asp-validation-for="RentStartDate" class="text-danger"></span>
             </div>
+            <br />
             <div class="form-group">
-                <label asp-for="RentEndDate" class="control-label"></label>
+                <label asp-for="RentEndDate" class="control-label">Return date</label>
                 <input asp-for="RentEndDate" class="form-control" />
                 <span asp-validation-for="RentEndDate" class="text-danger"></span>
             </div>
+            <br />
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>

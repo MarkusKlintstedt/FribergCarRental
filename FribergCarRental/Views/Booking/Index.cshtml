@@ -4,7 +4,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Your bookings</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -13,27 +13,36 @@
     <thead>
         <tr>
             <th>Car</th>
-            <th>
-                @Html.DisplayNameFor(model => model.RentStartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RentEndDate)
-            </th>
+            <th>Start date</th>
+            <th>Return date</th>
+            <th>Days</th>
+            <th>Cost per day</th>
+            <th>Total cost</th>
+            <th></th>
+
             <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Car.DisplayBrandModel)
-                </td>
-
+            <td>
+                @Html.DisplayFor(modelItem => item.Car.DisplayBrandModel)
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.RentStartDate)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.RentEndDate)
+            </td>
+            <td>
+                @(item.RentEndDate.DayNumber - item.RentStartDate.DayNumber + 1)
+            </td>
+            <td>
+                @(item.Car.RentPricePerDay) kr
+            </td>
+            <td>
+                @((item.RentEndDate.DayNumber - item.RentStartDate.DayNumber + 1) * item.Car.RentPricePerDay) kr
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.BookingId">Edit</a> |

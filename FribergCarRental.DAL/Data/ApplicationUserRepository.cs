@@ -1,14 +1,11 @@
 ﻿using FribergCarRental.Classes;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRental.Data
 {
-    public class ApplicationUserRepository //: GenericRepository<ApplicationUser>
+    public class ApplicationUserRepository
     {
-        //public ApplicationUserRepository(ApplicationDbContext applicationDbContext) : base(applicationDbContext)
-        //{
-
-        //}
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
@@ -35,7 +32,7 @@ namespace FribergCarRental.Data
 
         public async Task<IEnumerable<ApplicationUser>> GetAllAsync()
         {
-            return _userManager.Users.ToList();
+            return await _userManager.Users.ToListAsync();
         }
 
         public async Task<IdentityResult> UpdateUserAsync(ApplicationUser user)
@@ -47,9 +44,5 @@ namespace FribergCarRental.Data
         {
             return await _userManager.DeleteAsync(user);
         }
-
-
-
-
     }
 }

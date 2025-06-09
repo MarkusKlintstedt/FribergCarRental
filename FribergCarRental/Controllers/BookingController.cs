@@ -15,7 +15,7 @@ namespace FribergCarRental.Controllers
     [Authorize]
     public class BookingController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        //private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private List<BookingViewModel> _bookingViewModels = new();
         private BookingRepository _bookingRepository;
@@ -23,13 +23,14 @@ namespace FribergCarRental.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
 
 
-        public BookingController(ApplicationDbContext context, IMapper mapper, UserManager<ApplicationUser> userManager)
+        public BookingController(IMapper mapper, UserManager<ApplicationUser> userManager,
+            BookingRepository bookingRepository, CarRepository carRepository)
         {
-            _context = context;
+            //_context = context; ApplicationDbContext context, 
             _mapper = mapper;
             _userManager = userManager;
-            _bookingRepository = new BookingRepository(_context);
-            _carRepository = new CarRepository(_context);
+            _bookingRepository = bookingRepository;
+            _carRepository = carRepository;
         }
 
         // GET: BookingViewModels
@@ -37,7 +38,7 @@ namespace FribergCarRental.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             //var bookings = await _context.Bookings.Where(b => b.ApplicationUser == user).Include(b => b.Car).ToListAsync();
-            var bookings = _bookingRepository.GetAllWithCarAndUserByUserId(user.Id).ToList();
+            var bookings = await _bookingRepository.GetAllBookingsWithCarByUserIdAsync(user.Id);
             _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookings);
             return View(_bookingViewModels);
         }
@@ -49,7 +50,8 @@ namespace FribergCarRental.Controllers
             {
                 return NotFound();
             }
-            var booking = _bookingRepository.GetAllWithCar().FirstOrDefault(b => b.BookingId == id);
+            var booking = await _bookingRepository.GetBookingWithCarByIdAsync(id);
+            //var booking = await _bookingRepository.GetAllWithCarAsync().FirstOrDefault(b => b.BookingId == id);
             //var booking = await _context.Bookings.Include(b => b.Car).FirstOrDefaultAsync(m => m.BookingId == id);
             var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
 
@@ -62,10 +64,10 @@ namespace FribergCarRental.Controllers
         }
 
         // GET: BookingViewModels/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             //ViewBag.Cars = new SelectList(_context.Cars, "CarId", "DiaplayBrandModel");
-            ViewBag.Cars = new SelectList(_carRepository.GetAll(), "CarId", "DisplayBrandModel");
+            ViewBag.Cars = new SelectList(await _carRepository.GetAllAsync(), "CarId", "DisplayBrandModel");
             return View();
         }
 
@@ -77,7 +79,7 @@ namespace FribergCarRental.Controllers
         public async Task<IActionResult> Create([Bind("BookingId,CarId,RentStartDate,RentEndDate")] BookingViewModel bookingViewModel)
         {
             //Car car = _context.Cars.Find(bookingViewModel.CarId);
-            var car = _carRepository.GetById(bookingViewModel.CarId);
+            var car = await _carRepository.GetByIdAsync(bookingViewModel.CarId);
             bookingViewModel.Car = car;
             var user = await _userManager.GetUserAsync(User);
             bookingViewModel.ApplicationUser = user;
@@ -85,13 +87,13 @@ namespace FribergCarRental.Controllers
             if (ModelState.IsValid)
             {
                 var booking = _mapper.Map<Booking>(bookingViewModel);
-                _bookingRepository.Add(booking);
-                _bookingRepository.SaveChanges();
+                await _bookingRepository.AddAsync(booking);
+                await _bookingRepository.SaveChangesAsync();
                 //_context.Add(booking);
                 //await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.Cars = new SelectList(_carRepository.GetAll(), "CarId", "DisplayBrandModel");
+            ViewBag.Cars = new SelectList(await _carRepository.GetAllAsync(), "CarId", "DisplayBrandModel");
             return View(bookingViewModel);
         }
 
@@ -102,7 +104,8 @@ namespace FribergCarRental.Controllers
             {
                 return NotFound();
             }
-            var booking = _bookingRepository.GetAllWithCar().FirstOrDefault(b => b.BookingId == id);
+            var booking = await _bookingRepository.GetBookingWithCarByIdAsync(id);
+            //var booking = _bookingRepository.GetAllWithCar().FirstOrDefault(b => b.BookingId == id);
             //var booking = await _context.Bookings.Include(b => b.Car).FirstOrDefaultAsync(m => m.BookingId == id);
             var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
             ViewBag.Car = booking.Car.DisplayBrandModel;
@@ -132,13 +135,14 @@ namespace FribergCarRental.Controllers
                 {
                     var booking = _mapper.Map<Booking>(bookingViewModel);
                     _bookingRepository.Update(booking);
-                    _bookingRepository.SaveChanges();
+                    await _bookingRepository.SaveChangesAsync();
                     //_context.Update(booking);
                     //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BookingViewModelExists(bookingViewModel.BookingId))
+                    //if (!await BookingViewModelExistsAsync(bookingViewModel.BookingId))
+                    if (!await _bookingRepository.ExistsAsync(bookingViewModel.BookingId))
                     {
                         return NotFound();
                     }
@@ -159,7 +163,8 @@ namespace FribergCarRental.Controllers
             {
                 return NotFound();
             }
-            var booking = _bookingRepository.GetAllWithCar().FirstOrDefault(b => b.BookingId == id);
+            var booking = await _bookingRepository.GetBookingWithCarByIdAsync(id);
+            //var booking = _bookingRepository.GetAllWithCar().FirstOrDefault(b => b.BookingId == id);
             //var booking = await _context.Bookings
             //    .FirstOrDefaultAsync(m => m.BookingId == id);
             var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
@@ -176,22 +181,22 @@ namespace FribergCarRental.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var booking = _bookingRepository.GetById(id);
+            var booking = await _bookingRepository.GetByIdAsync(id);
             //var booking = await _context.Bookings.FindAsync(id);
             if (booking != null)
             {
                 _bookingRepository.Delete(booking);
                 //_context.Bookings.Remove(booking);
             }
-            _bookingRepository.SaveChanges();
+            await _bookingRepository.SaveChangesAsync();
             //await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookingViewModelExists(int id)
-        {
-            return _bookingRepository.GetById(id) != null;
-            //return _context.Bookings.Any(e => e.BookingId == id);
-        }
+        //private async Task<bool> BookingViewModelExistsAsync(int id)
+        //{
+        //    return await _bookingRepository.GetByIdAsync(id) != null;
+        //    //return _context.Bookings.Any(e => e.BookingId == id);
+        //}
     }
 }

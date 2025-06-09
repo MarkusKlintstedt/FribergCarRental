@@ -23,9 +23,7 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
-                Image
-            </th>
+            <th></th>
             <th></th>
         </tr>
     </thead>
@@ -33,7 +31,7 @@
 @foreach (var image in Model.Images) {
         <tr>
             <td>
-                <img src="@image.Path" alt="Car image" style="max-height:100px;" />
+                <img src="@image.Path" alt="Car image"  />
             </td>
             <td>
                 <a asp-action="DeleteImage" asp-route-imageId="@image.ImageId" asp-route-id="@Model.CarId">Delete</a>

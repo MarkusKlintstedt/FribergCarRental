@@ -3,7 +3,6 @@ using FribergCarRental.Classes;
 using FribergCarRental.Data;
 using FribergCarRental.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +12,7 @@ namespace FribergCarRental.Controllers
     public class AdminController : Controller
     {
 
-        private readonly ApplicationDbContext _context;
+        //private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private List<CarViewModel> _carViewModels = new List<CarViewModel>();
         private List<BookingViewModel> _bookingViewModels = new List<BookingViewModel>();
@@ -23,18 +22,18 @@ namespace FribergCarRental.Controllers
         private CarRepository _carRepository;
         private ImageRepository _imageRepository;
         private ApplicationUserRepository _applicationUserRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
+        //private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminController(ApplicationDbContext context, IMapper mapper, UserManager<ApplicationUser> userManager, CarRepository carRepository,
-            BookingRepository bookingRepository, ImageRepository imageRepository)
+        public AdminController(IMapper mapper, CarRepository carRepository,
+            BookingRepository bookingRepository, ImageRepository imageRepository, ApplicationUserRepository applicationUserRepository)
         {
-            _context = context;
+            //_context = context;ApplicationDbContext context, 
             _mapper = mapper;
-            _userManager = userManager;
+            //_userManager = userManager; UserManager<ApplicationUser> userManager, 
             _bookingRepository = bookingRepository;
             _carRepository = carRepository;
             _imageRepository = imageRepository;
-            _applicationUserRepository = new ApplicationUserRepository(userManager, _context);
+            _applicationUserRepository = applicationUserRepository; //new ApplicationUserRepository(userManager, _context);
         }
 
         // GET: Admin
@@ -45,12 +44,12 @@ namespace FribergCarRental.Controllers
 
         public async Task<IActionResult> Cars()
         {
-            var cars = _carRepository.GetAll();
+            var cars = await _carRepository.GetAllAsync();
             //= await _context.Cars.ToListAsync();
             _carViewModels = _mapper.Map<List<CarViewModel>>(cars);
             foreach (var car in _carViewModels)
             {
-                car.Images = _mapper.Map<List<ImageViewModel>>(_imageRepository.GetAllImagesByCarId(car.CarId));
+                car.Images = _mapper.Map<List<ImageViewModel>>(await _imageRepository.GetAllImagesByCarIdAsync(car.CarId));
                 //var image = car.Images.FirstOrDefault();
 
             }
@@ -72,8 +71,8 @@ namespace FribergCarRental.Controllers
             if (ModelState.IsValid)
             {
                 var car = _mapper.Map<Car>(carViewModel);
-                _carRepository.Add(car);
-                _carRepository.SaveChanges();
+                await _carRepository.AddAsync(car);
+                await _carRepository.SaveChangesAsync();
                 //_context.Add(car);
                 //await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Cars));
@@ -89,7 +88,7 @@ namespace FribergCarRental.Controllers
                 return NotFound();
             }
 
-            var car = _carRepository.GetById(id);
+            var car = await _carRepository.GetByIdAsync(id);
             //_context.Cars.FindAsync(id);
             var carViewModel = _mapper.Map<CarViewModel>(car);
 
@@ -118,13 +117,14 @@ namespace FribergCarRental.Controllers
                 {
                     var car = _mapper.Map<Car>(carViewModel); //Här är Fredriks exempel annorlunda. Funkar??
                     _carRepository.Update(car);
-                    _carRepository.SaveChanges();
+                    await _carRepository.SaveChangesAsync();
                     //_context.Update(car);
                     //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CarViewModelExists(carViewModel.CarId))
+                    //if (!await CarExists(carViewModel.CarId))
+                    if (!await _carRepository.ExistsAsync(carViewModel.CarId))
                     {
                         return NotFound();
                     }
@@ -146,7 +146,7 @@ namespace FribergCarRental.Controllers
                 return NotFound();
             }
 
-            var car = _carRepository.GetById(id);
+            var car = await _carRepository.GetByIdAsync(id);
             //= await _context.Cars.FirstOrDefaultAsync(m => m.CarId == id);
             var carViewModel = _mapper.Map<CarViewModel>(car);
             if (carViewModel == null)
@@ -162,28 +162,30 @@ namespace FribergCarRental.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedCar(int id)
         {
-            var car = _carRepository.GetById(id);
+            var car = await _carRepository.GetByIdAsync(id);
             //= await _context.Cars.FindAsync(id);
             if (car != null)
             {
                 _carRepository.Delete(car);
                 //_context.Cars.Remove(car);
             }
-            _carRepository.SaveChanges();
+            await _carRepository.SaveChangesAsync();
             //await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Cars));
         }
 
-        private bool CarViewModelExists(int id)
-        {
-            return _carRepository.GetAll().Any(e => e.CarId == id);
-            //return _context.Cars.Any(e => e.CarId == id);
-        }
+        //private async Task<bool> CarExists(int id)
+        //{
+        //    var cars = await _carRepository.GetAllAsync();
+        //    return cars.Any(e => e.CarId == id);
+        //    //return await _carRepository.GetAllAsync().AnyA(e => e.CarId == id);
+        //    //return _context.Cars.Any(e => e.CarId == id);
+        //}
 
         // GET: BookingViewModels
         public async Task<IActionResult> Bookings()
         {
-            var bookings = _bookingRepository.GetAllWithCar();
+            var bookings = await _bookingRepository.GetAllWithCarAndUserAsync();
             //var bookings = await _context.Bookings.Include(b => b.Car).ToListAsync();
             _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookings);
             return View(_bookingViewModels);
@@ -192,14 +194,15 @@ namespace FribergCarRental.Controllers
         // GET: BookingViewModels/Delete/5
         public async Task<IActionResult> DeleteBooking(int id)
         {
-            if (id == null)
+            var booking = await _bookingRepository.GetByIdAsync(id);
+
+            if (booking == null)
             {
                 return NotFound();
             }
             //var booking = await _context.Bookings
             //    .FirstOrDefaultAsync(m => m.BookingId == id);
 
-            var booking = _bookingRepository.GetById(id);
             var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
             if (bookingViewModel == null)
             {
@@ -215,7 +218,7 @@ namespace FribergCarRental.Controllers
         public async Task<IActionResult> DeleteBookingConfirmed(int? id)
         {
 
-            var booking = _bookingRepository.GetById(id);
+            var booking = await _bookingRepository.GetByIdAsync(id);
             //= await _context.Bookings.FindAsync(id);
             if (booking != null)
             {
@@ -223,7 +226,8 @@ namespace FribergCarRental.Controllers
                 //_context.Bookings.Remove(booking);
             }
 
-            await _context.SaveChangesAsync();
+            await _bookingRepository.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Bookings));
         }
 
@@ -339,7 +343,7 @@ namespace FribergCarRental.Controllers
             //user.UserName = userViewModel.UserName;
             //user.Email = userViewModel.UserName;
 
-            var result = await _userManager.UpdateAsync(user);
+            var result = await _applicationUserRepository.UpdateUserAsync(user);   //_userManager.UpdateAsync(user);
             //= await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
@@ -391,7 +395,7 @@ namespace FribergCarRental.Controllers
             {
                 return NotFound();
             }
-            return RedirectToAction(nameof(Users));
+            return View(userViewModel);
         }
 
         // POST: Users/DeleteUser/5
@@ -408,7 +412,7 @@ namespace FribergCarRental.Controllers
             }
 
             //await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Users));
         }
 
         //private bool UserViewModelExists(string id)
@@ -418,40 +422,40 @@ namespace FribergCarRental.Controllers
 
         public async Task<IActionResult> Images(int id)
         {
-            var car = _carRepository.GetById(id);
-            var images = _imageRepository.GetAllImagesByCarId(id);
+            var car = await _carRepository.GetByIdAsync(id);
+            var images = await _imageRepository.GetAllImagesByCarIdAsync(id);
 
             var viewModel = _mapper.Map<CarViewModel>(car);
             viewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
             return View(viewModel);
         }
 
-        public IActionResult AddImage(int id, string newImagePath)
+        public async Task<IActionResult> AddImage(int id, string newImagePath)
         {
             if (string.IsNullOrEmpty(newImagePath))
             {
-                return RedirectToAction(nameof(Images), new { carId = id });
+                return RedirectToAction(nameof(Images), new { id = id });
             }
             var image = new Image()
             {
                 CarId = id,
-                Car = _carRepository.GetById(id),
+                Car = await _carRepository.GetByIdAsync(id),
                 Path = newImagePath
             };
 
-            _imageRepository.Add(image);
-            _imageRepository.SaveChanges();
+            await _imageRepository.AddAsync(image);
+            await _imageRepository.SaveChangesAsync();
             return RedirectToAction(nameof(Images), new { id = id });
 
         }
 
-        public IActionResult DeleteImage(int id, int imageId)
+        public async Task<IActionResult> DeleteImage(int id, int imageId)
         {
-            var image = _imageRepository.GetById(imageId);
+            var image = await _imageRepository.GetByIdAsync(imageId);
             if (image != null)
             {
                 _imageRepository.Delete(image);
-                _imageRepository.SaveChanges();
+                await _imageRepository.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Images), new { id = id });
 

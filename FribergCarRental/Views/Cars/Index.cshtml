@@ -4,7 +4,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Cars</h1>
 
 <p>
     @* <a asp-action="Create">Create New</a> *@
@@ -12,17 +12,15 @@
 <table class="table">
     <thead>
         <tr>
+            <th></th>
             <th>
-                @Html.DisplayNameFor(model => model.Brand)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ModelName)
+                Car
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Description)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.RentPricePerDay)
+                Price per day
             </th>
             <th></th>
         </tr>
@@ -31,21 +29,29 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Brand)
+                @if (item.Images != null && item.Images.Any())
+                {
+                    string imgPath = item.Images.First().Path;
+                    <img src="@imgPath" alt="Car image" style="max-height:100px;" />
+                }
+                else
+                {
+                    <span>No image available</span>
+                }
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ModelName)
+                    @Html.DisplayFor(modelItem => item.Brand) @Html.DisplayFor(modelItem => item.ModelName)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.RentPricePerDay)
+                @Html.DisplayFor(modelItem => item.RentPricePerDay) kr
             </td>
             <td>
                 @* <a asp-action="Edit" asp-route-id="@item.CarId">Edit</a> | *@
                 <a asp-action="Details" asp-route-id="@item.CarId">Details</a> |
-                @* <a asp-action="Delete" asp-route-id="@item.CarId">Delete</a> *@
+                <a asp-action="Images" asp-route-id="@item.CarId">Images</a> 
             </td>
         </tr>
 }

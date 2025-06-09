@@ -12,9 +12,7 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
-                Image
-            </th>
+            <th></th>
             <th>
                 Model
             </th>
@@ -22,7 +20,7 @@
                 Description
             </th>
             <th>
-                Price/day (SEK)
+                Price/day 
             </th>
             <th></th>
         </tr>
@@ -49,7 +47,7 @@
                     @Html.DisplayFor(modelItem => item.Description)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.RentPricePerDay)
+                    @Html.DisplayFor(modelItem => item.RentPricePerDay) kr
                 </td>
                 <td>
                     <a asp-action="EditCar" asp-route-id="@item.CarId">Edit</a>
