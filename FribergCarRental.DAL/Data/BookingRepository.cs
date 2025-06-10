@@ -35,5 +35,12 @@ namespace FribergCarRental.Data
                 .Include(b => b.Car)
                 .FirstOrDefaultAsync(b => b.BookingId == id);
         }
+
+        public async Task<List<Booking>> GetAllBookingsByCarIdAsync(int carId)
+        {
+            return await applicationDbContext.Bookings
+                .Where(b => b.Car.CarId == carId)
+                .ToListAsync();
+        }
     }
 }

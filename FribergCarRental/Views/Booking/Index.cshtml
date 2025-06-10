@@ -4,7 +4,16 @@
     ViewData["Title"] = "Index";
 }
 
+
+
 <h1>Your bookings</h1>
+@if (TempData["SuccessfulBooking"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessfulBooking"]
+    </div>
+}
+ 
 
 <p>
     <a asp-action="Create">Create New</a>

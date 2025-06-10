@@ -7,7 +7,6 @@ namespace FribergCarRental.Controllers
 {
     public class CarsController : Controller
     {
-        //private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private List<CarViewModel> _carViewModels = new List<CarViewModel>();
         private CarRepository _carRepository;
@@ -16,7 +15,6 @@ namespace FribergCarRental.Controllers
 
         public CarsController(ApplicationDbContext context, IMapper mapper, CarRepository carRepository, ImageRepository imageRepository)
         {
-            //_context = context;
             _mapper = mapper;
             _carRepository = carRepository;
             _imageRepository = imageRepository;
@@ -26,12 +24,10 @@ namespace FribergCarRental.Controllers
         public async Task<IActionResult> Index()
         {
             var cars = await _carRepository.GetAllAsync();
-            //var cars = await _context.Cars.ToListAsync();
             _carViewModels = _mapper.Map<List<CarViewModel>>(cars);
             foreach (var car in _carViewModels)
             {
                 car.Images = _mapper.Map<List<ImageViewModel>>(await _imageRepository.GetAllImagesByCarIdAsync(car.CarId));
-                //var image = car.Images.FirstOrDefault();
             }
             return View(_carViewModels);
         }
@@ -45,8 +41,6 @@ namespace FribergCarRental.Controllers
             }
 
             var car = await _carRepository.GetByIdAsync(id);
-            //var car = await _context.Cars
-            //    .FirstOrDefaultAsync(m => m.CarId == id);
             var carViewModel = _mapper.Map<CarViewModel>(car);
             if (carViewModel == null)
             {
@@ -65,121 +59,5 @@ namespace FribergCarRental.Controllers
             viewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
             return View(viewModel);
         }
-
-
-        //// GET: Cars/Create
-        //public IActionResult Create()
-        //{
-        //    return View();
-        //}
-
-        //// POST: Cars/Create
-        //// To protect from overposting attacks, enable the specific properties you want to bind to.
-        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create([Bind("CarId,Brand,ModelName,Description,RentPricePerDay")] CarViewModel carViewModel)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var car = _mapper.Map<Car>(carViewModel);
-        //        _context.Add(car);
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    return View(carViewModel);
-        //}
-
-        //public async Task<IActionResult> Edit(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var car = await _context.Cars.FindAsync(id);
-        //    var carViewModel = _mapper.Map<CarViewModel>(car);
-
-        //    if (carViewModel == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return View(carViewModel);
-        //}
-
-        //// POST: Cars/Edit/5
-        //// To protect from overposting attacks, enable the specific properties you want to bind to.
-        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, [Bind("CarId,Brand,ModelName,Description,RentPricePerDay")] CarViewModel carViewModel)
-        //{
-        //    if (id != carViewModel.CarId)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            var car = _mapper.Map<Car>(carViewModel); //Här är Fredriks exempel annorlunda. Funkar??
-        //            _context.Update(car);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!CarViewModelExists(carViewModel.CarId))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    return View(carViewModel);
-        //}
-
-        //// GET: Cars/Delete/5
-        //public async Task<IActionResult> Delete(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var car = await _context.Cars
-        //        .FirstOrDefaultAsync(m => m.CarId == id);
-        //    var carViewModel = _mapper.Map<CarViewModel>(car);
-        //    if (carViewModel == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return View(carViewModel);
-        //}
-
-        //// POST: Cars/Delete/5
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    var car = await _context.Cars.FindAsync(id);
-        //    if (car != null)
-        //    {
-        //        _context.Cars.Remove(car);
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Index));
-        //}
-
-        //    private bool CarViewModelExists(int id)
-        //    {
-        //        return _context.Cars.Any(e => e.CarId == id);
-        //    }
     }
 }

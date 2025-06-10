@@ -15,7 +15,5 @@ namespace FribergCarRental.Data
             : base(options)
         {
         }
-        //public DbSet<FribergCarRental.Models.ImageViewModel> ImageViewModel { get; set; } = default!;
-        //public DbSet<FribergCarRental.Models.UserViewModel> UserViewModel { get; set; } = default!;
     }
 }

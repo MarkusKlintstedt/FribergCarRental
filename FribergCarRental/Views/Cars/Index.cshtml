@@ -6,9 +6,6 @@
 
 <h1>Cars</h1>
 
-<p>
-    @* <a asp-action="Create">Create New</a> *@
-</p>
 <table class="table">
     <thead>
         <tr>
@@ -49,7 +46,6 @@
                 @Html.DisplayFor(modelItem => item.RentPricePerDay) kr
             </td>
             <td>
-                @* <a asp-action="Edit" asp-route-id="@item.CarId">Edit</a> | *@
                 <a asp-action="Details" asp-route-id="@item.CarId">Details</a> |
                 <a asp-action="Images" asp-route-id="@item.CarId">Images</a> 
             </td>
