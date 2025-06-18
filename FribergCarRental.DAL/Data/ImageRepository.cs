@@ -1,7 +1,7 @@
-﻿using FribergCarRental.Classes;
+﻿using FribergCarRental.DAL.Classes;
 using Microsoft.EntityFrameworkCore;
 
-namespace FribergCarRental.Data
+namespace FribergCarRental.DAL.Data
 {
     public class ImageRepository : GenericRepository<Image>
     {

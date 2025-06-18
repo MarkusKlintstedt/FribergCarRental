@@ -1,7 +1,7 @@
-﻿using FribergCarRental.Classes;
+﻿using FribergCarRental.DAL.Classes;
 using Microsoft.EntityFrameworkCore;
 
-namespace FribergCarRental.Data
+namespace FribergCarRental.DAL.Data
 {
     public class BookingRepository : GenericRepository<Booking>
     {
@@ -25,11 +25,11 @@ namespace FribergCarRental.Data
             return await applicationDbContext.Bookings
                 .Include(b => b.Car)
                 .Include(b => b.ApplicationUser)
-                .Where(b => b.ApplicationUser.Id == userId)
+                .Where(b => b.ApplicationUser != null && b.ApplicationUser.Id == userId)
                 .ToListAsync();
         }
 
-        public async Task<Booking> GetBookingWithCarByIdAsync(int? id)
+        public async Task<Booking?> GetBookingWithCarByIdAsync(int? id)
         {
             return await applicationDbContext.Bookings
                 .Include(b => b.Car)
@@ -39,7 +39,7 @@ namespace FribergCarRental.Data
         public async Task<List<Booking>> GetAllBookingsByCarIdAsync(int carId)
         {
             return await applicationDbContext.Bookings
-                .Where(b => b.Car.CarId == carId)
+                .Where(b => b.Car != null && b.Car.CarId == carId)
                 .ToListAsync();
         }
     }

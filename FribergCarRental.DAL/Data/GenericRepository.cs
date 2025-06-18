@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace FribergCarRental.Data
+namespace FribergCarRental.DAL.Data
 {
     public abstract class GenericRepository<T> : IRepository<T> where T : class
     {
@@ -21,7 +21,7 @@ namespace FribergCarRental.Data
             applicationDbContext.Remove<T>(entity);
         }
 
-        public async Task<T> GetByIdAsync(int? id)
+        public async Task<T?> GetByIdAsync(int? id)
         {
             return await applicationDbContext.FindAsync<T>(id);
         }

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using FribergCarRental.Classes;
-using FribergCarRental.Data;
+using FribergCarRental.DAL.Classes;
+using FribergCarRental.DAL.Data;
 using FribergCarRental.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -33,6 +33,10 @@ namespace FribergCarRental.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
             var bookings = await _bookingRepository.GetAllBookingsWithCarByUserIdAsync(user.Id);
             _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookings);
             return View(_bookingViewModels);
@@ -69,7 +73,14 @@ namespace FribergCarRental.Controllers
         public async Task<IActionResult> Create([Bind("BookingId,CarId,RentStartDate,RentEndDate")] BookingViewModel bookingViewModel)
         {
             var car = await _carRepository.GetByIdAsync(bookingViewModel.CarId);
+            if (car == null)
+            {
+                ModelState.AddModelError(string.Empty, "Selected car does not exist.");
+                ViewBag.Cars = new SelectList(await _carRepository.GetAllAsync(), "CarId", "DisplayBrandModel");
+                return View(bookingViewModel);
+            }
             bookingViewModel.Car = car;
+
             var user = await _userManager.GetUserAsync(User);
             bookingViewModel.ApplicationUser = user;
 
@@ -124,13 +135,12 @@ namespace FribergCarRental.Controllers
                 return NotFound();
             }
             var booking = await _bookingRepository.GetBookingWithCarByIdAsync(id);
-            var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
-            ViewBag.Car = booking.Car.DisplayBrandModel;
-
-            if (bookingViewModel == null)
+            if (booking == null || booking.Car == null)
             {
                 return NotFound();
             }
+            var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
+            ViewBag.Car = booking.Car.DisplayBrandModel;
             return View(bookingViewModel);
         }
 

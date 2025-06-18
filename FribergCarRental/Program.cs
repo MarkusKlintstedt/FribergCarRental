@@ -1,4 +1,5 @@
-using FribergCarRental.Classes;
+using FribergCarRental.DAL.Classes;
+using FribergCarRental.DAL.Data;
 using FribergCarRental.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

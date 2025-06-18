@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
-namespace FribergCarRental.Classes
+namespace FribergCarRental.DAL.Classes
 {
     public class ApplicationUser : IdentityUser
     {
@@ -20,6 +20,6 @@ namespace FribergCarRental.Classes
         [Required]
         [MaxLength(10)]
         public string ZipCode { get; set; } = "";
-        public virtual List<Booking> Bookings { get; set; } = new List<Booking>();
+        public virtual List<Booking> Bookings { get; set; } = new() { };
     }
 }

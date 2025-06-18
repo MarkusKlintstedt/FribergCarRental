@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FribergCarRental.Classes;
+using FribergCarRental.DAL.Classes;
 using FribergCarRental.Models;
 
 namespace FribergCarRental.Data

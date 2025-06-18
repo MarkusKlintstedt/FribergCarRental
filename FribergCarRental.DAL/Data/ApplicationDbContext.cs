@@ -1,8 +1,8 @@
-﻿using FribergCarRental.Classes;
+﻿using FribergCarRental.DAL.Classes;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace FribergCarRental.Data
+namespace FribergCarRental.DAL.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {

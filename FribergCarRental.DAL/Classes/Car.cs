@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FribergCarRental.Classes
+namespace FribergCarRental.DAL.Classes
 {
     public class Car
     {

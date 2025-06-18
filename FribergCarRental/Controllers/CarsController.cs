@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FribergCarRental.Data;
+using FribergCarRental.DAL.Data;
 using FribergCarRental.Models;
 using Microsoft.AspNetCore.Mvc;
 

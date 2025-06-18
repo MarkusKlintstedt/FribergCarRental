@@ -1,6 +1,6 @@
-﻿using FribergCarRental.Classes;
+﻿using FribergCarRental.DAL.Classes;
 
-namespace FribergCarRental.Data
+namespace FribergCarRental.DAL.Data
 {
     public class CarRepository : GenericRepository<Car>
     {

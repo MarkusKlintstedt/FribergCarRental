@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using FribergCarRental.Classes;
+using FribergCarRental.DAL.Classes;
 
 namespace FribergCarRental.Models
 {
@@ -7,7 +7,7 @@ namespace FribergCarRental.Models
     {
         public String? Id { get; set; }
         [EmailAddress]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
         [DataType(DataType.Password)]
         public string? NewPassword { get; set; }
         [DataType(DataType.PhoneNumber)]

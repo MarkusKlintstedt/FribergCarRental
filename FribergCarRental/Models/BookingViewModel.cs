@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using FribergCarRental.Classes;
+using FribergCarRental.DAL.Classes;
 
 namespace FribergCarRental.Models
 {

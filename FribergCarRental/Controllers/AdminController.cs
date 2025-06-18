@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using FribergCarRental.Classes;
-using FribergCarRental.Data;
+using FribergCarRental.DAL.Classes;
+using FribergCarRental.DAL.Data;
 using FribergCarRental.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -220,7 +220,7 @@ namespace FribergCarRental.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUser([Bind("NewPassword,UserName,FirstName,LastName,Address,City,ZipCode,PhoneNumber")] UserViewModel userViewModel)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(userViewModel.NewPassword))
             {
                 var user = new ApplicationUser
                 {

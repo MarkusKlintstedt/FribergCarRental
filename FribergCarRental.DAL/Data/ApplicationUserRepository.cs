@@ -1,23 +1,43 @@
-﻿using FribergCarRental.Classes;
+﻿using FribergCarRental.DAL.Classes;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace FribergCarRental.Data
+namespace FribergCarRental.DAL.Data
 {
     public class ApplicationUserRepository
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public ApplicationUserRepository(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public ApplicationUserRepository(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
-            _context = context;
+            _roleManager = roleManager;
         }
 
         public async Task<IdentityResult> CreateUserAsync(ApplicationUser user, string password)
         {
-            return await _userManager.CreateAsync(user, password);
+            var result = await _userManager.CreateAsync(user, password);
+            if (!result.Succeeded)
+                return result;
+
+            var roleExists = await _roleManager.RoleExistsAsync("Customer");
+            if (!roleExists)
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole("Customer"));
+                if (!roleResult.Succeeded)
+                {
+                    return IdentityResult.Failed(new IdentityError { Description = "Could not create 'Customer' role." });
+                }
+            }
+
+            var roleAddResult = await _userManager.AddToRoleAsync(user, "Customer");
+            if (!roleAddResult.Succeeded)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "Could not add user to 'Customer' role." });
+            }
+
+            return result;
         }
 
         public async Task<ApplicationUser?> GetByEmailAsync(string email)

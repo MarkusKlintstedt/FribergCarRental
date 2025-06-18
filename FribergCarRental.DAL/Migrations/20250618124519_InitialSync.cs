@@ -2,21 +2,19 @@
 
 #nullable disable
 
-namespace FribergCarRental.Data.Migrations
+namespace FribergCarRental.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class ChangedCarProperties2 : Migration
+    public partial class InitialSync : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
         }
     }
 }

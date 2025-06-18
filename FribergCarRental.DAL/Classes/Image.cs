@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FribergCarRental.Classes
+namespace FribergCarRental.DAL.Classes
 {
     public class Image
     {
@@ -9,6 +9,6 @@ namespace FribergCarRental.Classes
         [MaxLength(100)]
         public string Path { get; set; } = "";
         public int CarId { get; set; }
-        public Car Car { get; set; }
+        public Car? Car { get; set; }
     }
 }

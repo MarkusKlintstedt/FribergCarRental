@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FribergCarRental.Classes
+namespace FribergCarRental.DAL.Classes
 {
     public class Booking
     {
@@ -9,7 +9,8 @@ namespace FribergCarRental.Classes
         public DateOnly RentStartDate { get; set; }
         [Required]
         public DateOnly RentEndDate { get; set; }
-        public required Car Car { get; set; }
-        public required ApplicationUser ApplicationUser { get; set; }
+        public int CarId { get; set; }
+        public Car? Car { get; set; }
+        public ApplicationUser? ApplicationUser { get; set; }
     }
 }
