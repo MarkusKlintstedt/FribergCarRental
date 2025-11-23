@@ -1,5 +1,4 @@
-﻿using FribergCarRental.DAL.Classes;
-
+﻿
 namespace FribergCarRental.Models
 {
     public class ImageViewModel
@@ -7,6 +6,6 @@ namespace FribergCarRental.Models
         public int ImageId { get; set; }
         public string Path { get; set; } = "";
         public int CarId { get; set; }
-        public Car? Car { get; set; }
+        //public Car? Car { get; set; }
     }
 }

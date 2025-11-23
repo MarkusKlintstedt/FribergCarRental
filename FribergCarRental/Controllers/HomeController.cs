@@ -1,14 +1,15 @@
 using System.Diagnostics;
 using FribergCarRental.Models;
+using FribergCarRental.Services.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRental.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IAuthService authService) : base(authService)
         {
             _logger = logger;
         }

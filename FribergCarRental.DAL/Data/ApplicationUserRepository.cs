@@ -1,4 +1,4 @@
-﻿using FribergCarRental.DAL.Classes;
+﻿using FribergCarRental.Core.Classes;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -63,6 +63,11 @@ namespace FribergCarRental.DAL.Data
         public async Task<IdentityResult> DeleteUserAsync(ApplicationUser user)
         {
             return await _userManager.DeleteAsync(user);
+        }
+
+        public async Task<bool> CheckPasswordAsync(ApplicationUser? user, string password)
+        {
+            return await _userManager.CheckPasswordAsync(user, password);
         }
     }
 }

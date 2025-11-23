@@ -1,0 +1,19 @@
+﻿@model FribergCarRental.Models.LoginViewModel
+
+<h2>Logga in</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Lösenord</label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-primary mt-3" type="submit">Logga in</button>
+</form>

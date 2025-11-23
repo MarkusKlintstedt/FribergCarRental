@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using FribergCarRental.DAL.Classes;
 
 namespace FribergCarRental.Models
 {
@@ -7,9 +6,9 @@ namespace FribergCarRental.Models
     {
         public String? Id { get; set; }
         [EmailAddress]
-        public string? UserName { get; set; }
+        public string? Email { get; set; }
         [DataType(DataType.Password)]
-        public string? NewPassword { get; set; }
+        public string? Password { get; set; }
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; } = "";
         [MaxLength(50)]
@@ -22,7 +21,5 @@ namespace FribergCarRental.Models
         public string City { get; set; } = "";
         [MaxLength(10)]
         public string ZipCode { get; set; } = "";
-        public List<Booking> Bookings { get; set; } = new List<Booking>();
-
     }
 }

@@ -1,4 +1,4 @@
-﻿using FribergCarRental.DAL.Classes;
+﻿using FribergCarRental.Core.Classes;
 using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRental.DAL.Data

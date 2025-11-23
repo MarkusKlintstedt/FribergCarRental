@@ -1,8 +1,11 @@
-using FribergCarRental.DAL.Classes;
-using FribergCarRental.DAL.Data;
+using Blazored.LocalStorage;
+using FribergCarRental.Client.Services.Base;
 using FribergCarRental.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using FribergCarRental.Middleware;
+//using FribergCarRental.Providers;
+using FribergCarRental.Services.Authentication;
+using FribergCarRental.Services.Base;
+//using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRental
 {
@@ -11,41 +14,46 @@ namespace FribergCarRental
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7264/") });
+            builder.Services.AddBlazoredLocalStorage();
+            ////builder.Services.AddScoped<ApiAuthenticationStateProvider>();
+            ////builder.Services.AddScoped<AuthenticationStateProvider>(
+            ////    p => p.GetRequiredService<ApiAuthenticationStateProvider>());
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
-            builder.Services.AddAutoMapper(typeof(MappingProfile));
-            builder.Services.AddScoped<BookingRepository>();
-            builder.Services.AddScoped<CarRepository>();
-            builder.Services.AddScoped<ImageRepository>();
-            builder.Services.AddScoped<ApplicationUserRepository>();
+            builder.Services.AddAutoMapper(typeof(ClientMappingProfile));
+            //builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            builder.Services.AddScoped(sp =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    UseCookies = true
+                };
+                return new HttpClient(handler)
+                {
+                    BaseAddress = new Uri("https://localhost:7264")
+                };
+            });
+
+
+            builder.Services.AddScoped<FribergCarRental.Services.Base.IClient, FribergCarRental.Services.Base.Client>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<CarService>();
+            builder.Services.AddScoped<ImageService>();
+            builder.Services.AddScoped<BookingService>();
+            builder.Services.AddScoped<ApplicationUserService>();
+            builder.Services.AddHttpContextAccessor();
+
+            builder.Services.AddRazorPages();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseMigrationsEndPoint();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseMiddleware<JwtCookieAuthenticationMiddleware>();
             app.UseAuthorization();
 
             app.MapControllerRoute(
@@ -53,18 +61,18 @@ namespace FribergCarRental
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                var roles = new[] { "Admin", "Customer" };
-                foreach (var role in roles)
-                {
-                    if (!await roleManager.RoleExistsAsync(role))
-                    {
-                        await roleManager.CreateAsync(new IdentityRole(role));
-                    }
-                }
-            }
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            //    var roles = new[] { "Admin", "Customer" };
+            //    foreach (var role in roles)
+            //    {
+            //        if (!await roleManager.RoleExistsAsync(role))
+            //        {
+            //            await roleManager.CreateAsync(new IdentityRole(role));
+            //        }
+            //    }
+            //}
 
             app.Run();
         }

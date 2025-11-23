@@ -1,6 +1,7 @@
-﻿using FribergCarRental.DAL.Classes;
+﻿using FribergCarRental.Core.Classes;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace FribergCarRental.DAL.Data
 {

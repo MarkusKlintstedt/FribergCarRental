@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@* @using Microsoft.AspNetCore.Identity
 @using FribergCarRental.DAL.Classes
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -24,4 +24,27 @@ else
         <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
     </li>
 }
-</ul>
+</ul> *@
+ <ul class="navbar-nav ms-auto">
+    @if (ViewBag.CurrentUser == null)
+    {
+        <li class="nav-item">
+            <a class="nav-link" href="/Auth/Login">Login</a>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <span class="navbar-text">
+                Inloggad som @ViewBag.CurrentUser
+            </span>
+        </li>
+
+        <li class="nav-item">
+            <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+            </form>
+        </li>
+    }
+</ul> 

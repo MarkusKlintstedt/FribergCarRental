@@ -1,0 +1,6 @@
+@FribergCarRentalApi_HostAddress = http://localhost:5107
+
+GET {{FribergCarRentalApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

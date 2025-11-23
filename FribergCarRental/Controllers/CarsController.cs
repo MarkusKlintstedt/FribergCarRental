@@ -1,47 +1,45 @@
 ﻿using AutoMapper;
-using FribergCarRental.DAL.Data;
+using FribergCarRental.Client.Services.Base;
 using FribergCarRental.Models;
+using FribergCarRental.Services.Authentication;
+using FribergCarRental.Services.Base;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRental.Controllers
 {
-    public class CarsController : Controller
+    public class CarsController : BaseController
     {
         private readonly IMapper _mapper;
         private List<CarViewModel> _carViewModels = new List<CarViewModel>();
-        private CarRepository _carRepository;
-        private ImageRepository _imageRepository;
+        private CarService _carService;
+        private ImageService _imageService;
 
 
-        public CarsController(ApplicationDbContext context, IMapper mapper, CarRepository carRepository, ImageRepository imageRepository)
+        public CarsController(IMapper mapper, CarService carService, ImageService imageService, IAuthService authService) : base(authService)
         {
             _mapper = mapper;
-            _carRepository = carRepository;
-            _imageRepository = imageRepository;
+            _carService = carService;
+            _imageService = imageService;
         }
 
-        // GET: Cars
+        // GET: Cars 
         public async Task<IActionResult> Index()
         {
-            var cars = await _carRepository.GetAllAsync();
-            _carViewModels = _mapper.Map<List<CarViewModel>>(cars);
-            foreach (var car in _carViewModels)
-            {
-                car.Images = _mapper.Map<List<ImageViewModel>>(await _imageRepository.GetAllImagesByCarIdAsync(car.CarId));
-            }
+            var carsResponse = await _carService.GetCars();
+            _carViewModels = _mapper.Map<List<CarViewModel>>(carsResponse.Data);
+            //foreach (var car in _carViewModels)
+            //{
+            //    var imageResponse = await _imageService.GetImage(car.CarId);
+            //    car.Images = _mapper.Map<List<ImageViewModel>>(imageResponse.Data);
+            //}
             return View(_carViewModels);
         }
 
         // GET: Cars/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var car = await _carRepository.GetByIdAsync(id);
-            var carViewModel = _mapper.Map<CarViewModel>(car);
+            var carResponse = await _carService.GetCar(id);
+            var carViewModel = _mapper.Map<CarViewModel>(carResponse.Data);
             if (carViewModel == null)
             {
                 return NotFound();
@@ -52,11 +50,11 @@ namespace FribergCarRental.Controllers
 
         public async Task<IActionResult> Images(int id)
         {
-            var car = await _carRepository.GetByIdAsync(id);
-            var images = await _imageRepository.GetAllImagesByCarIdAsync(id);
+            var carResponse = await _carService.GetCar(id);
+            //var imagesResponse = await _imageService.GetImagesByCarId(id);
 
-            var viewModel = _mapper.Map<CarViewModel>(car);
-            viewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
+            var viewModel = _mapper.Map<CarViewModel>(carResponse.Data);
+            //viewModel.Images = _mapper.Map<List<ImageViewModel>>(imagesResponse.Data);
             return View(viewModel);
         }
     }

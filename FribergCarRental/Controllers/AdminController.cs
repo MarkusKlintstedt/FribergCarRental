@@ -1,34 +1,35 @@
 ﻿using AutoMapper;
-using FribergCarRental.DAL.Classes;
-using FribergCarRental.DAL.Data;
+using FribergCarRental.Client.Services.Base;
 using FribergCarRental.Models;
+using FribergCarRental.Services.Authentication;
+using FribergCarRental.Services.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRental.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
         private readonly IMapper _mapper;
         private List<CarViewModel> _carViewModels = new List<CarViewModel>();
         private List<BookingViewModel> _bookingViewModels = new List<BookingViewModel>();
         private List<UserViewModel> _userViewModels = new List<UserViewModel>();
         private List<ImageViewModel> _imageViewModels = new List<ImageViewModel>();
-        private BookingRepository _bookingRepository;
-        private CarRepository _carRepository;
-        private ImageRepository _imageRepository;
-        private ApplicationUserRepository _applicationUserRepository;
+        private BookingService _bookingService;
+        private CarService _carService;
+        private ImageService _imageService;
+        private ApplicationUserService _applicationUserService;
 
-        public AdminController(IMapper mapper, CarRepository carRepository,
-            BookingRepository bookingRepository, ImageRepository imageRepository, ApplicationUserRepository applicationUserRepository)
+        public AdminController(IMapper mapper, CarService carRepository,
+            BookingService bookingRepository, ImageService imageRepository,
+            ApplicationUserService applicationUserRepository, IAuthService authService) : base(authService)
         {
             _mapper = mapper;
-            _bookingRepository = bookingRepository;
-            _carRepository = carRepository;
-            _imageRepository = imageRepository;
-            _applicationUserRepository = applicationUserRepository;
+            _bookingService = bookingRepository;
+            _carService = carRepository;
+            _imageService = imageRepository;
+            _applicationUserService = applicationUserRepository;
         }
 
         // GET: Admin
@@ -39,11 +40,12 @@ namespace FribergCarRental.Controllers
 
         public async Task<IActionResult> Cars()
         {
-            var cars = await _carRepository.GetAllAsync();
-            _carViewModels = _mapper.Map<List<CarViewModel>>(cars);
+            var carsResponse = await _carService.GetCars();
+            _carViewModels = _mapper.Map<List<CarViewModel>>(carsResponse.Data);
             foreach (var car in _carViewModels)
             {
-                car.Images = _mapper.Map<List<ImageViewModel>>(await _imageRepository.GetAllImagesByCarIdAsync(car.CarId));
+                var imageResponse = await _imageService.GetImage(car.CarId);
+                car.Images = _mapper.Map<List<ImageViewModel>>(imageResponse.Data);
             }
             return View(_carViewModels);
         }
@@ -62,23 +64,17 @@ namespace FribergCarRental.Controllers
         {
             if (ModelState.IsValid)
             {
-                var car = _mapper.Map<Car>(carViewModel);
-                await _carRepository.AddAsync(car);
-                await _carRepository.SaveChangesAsync();
+                var car = _mapper.Map<CarDto>(carViewModel);
+                await _carService.AddCar(car);
                 return RedirectToAction(nameof(Cars));
             }
             return View(carViewModel);
         }
 
-        public async Task<IActionResult> EditCar(int? id)
+        public async Task<IActionResult> EditCar(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var car = await _carRepository.GetByIdAsync(id);
-            var carViewModel = _mapper.Map<CarViewModel>(car);
+            var carResponse = await _carService.GetCar(id);
+            var carViewModel = _mapper.Map<CarViewModel>(carResponse.Data);
 
             if (carViewModel == null)
             {
@@ -101,22 +97,11 @@ namespace FribergCarRental.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                var car = _mapper.Map<CarDto>(carViewModel);
+                var response = await _carService.UpdateCar(car.CarId, car);
+                if (response.Success == false)
                 {
-                    var car = _mapper.Map<Car>(carViewModel);
-                    _carRepository.Update(car);
-                    await _carRepository.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await _carRepository.ExistsAsync(carViewModel.CarId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return NotFound();
                 }
                 return RedirectToAction(nameof(Cars));
             }
@@ -124,14 +109,9 @@ namespace FribergCarRental.Controllers
         }
 
         // GET: Cars/Delete/5
-        public async Task<IActionResult> DeleteCar(int? id)
+        public async Task<IActionResult> DeleteCar(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var car = await _carRepository.GetByIdAsync(id);
+            var car = await _carService.GetCar(id);
             var carViewModel = _mapper.Map<CarViewModel>(car);
             if (carViewModel == null)
             {
@@ -146,34 +126,42 @@ namespace FribergCarRental.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedCar(int id)
         {
-            var car = await _carRepository.GetByIdAsync(id);
-            if (car != null)
+            var carResponse = await _carService.GetCar(id);
+            if (carResponse.Success == true)
             {
-                _carRepository.Delete(car);
+                var deleteResponse = await _carService.DeleteCar(carResponse.Data.CarId);
+                if (deleteResponse.Success == false)
+                {
+                    return NotFound();
+                }
             }
-            await _carRepository.SaveChangesAsync();
             return RedirectToAction(nameof(Cars));
         }
 
         // GET: BookingViewModels
         public async Task<IActionResult> Bookings()
         {
-            var bookings = await _bookingRepository.GetAllWithCarAndUserAsync();
-            _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookings);
+            var bookingsResponse = await _bookingService.GetAllWithCarAndUser();
+            if (bookingsResponse.Success == false)
+            {
+                return NotFound();
+            }
+
+            _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookingsResponse.Data);
             return View(_bookingViewModels);
         }
 
         // GET: BookingViewModels/Delete/5
         public async Task<IActionResult> DeleteBooking(int id)
         {
-            var booking = await _bookingRepository.GetByIdAsync(id);
+            var bookingResponse = await _bookingService.GetById(id);
 
-            if (booking == null)
+            if (bookingResponse.Success == false)
             {
                 return NotFound();
             }
 
-            var bookingViewModel = _mapper.Map<BookingViewModel>(booking);
+            var bookingViewModel = _mapper.Map<BookingViewModel>(bookingResponse);
             if (bookingViewModel == null)
             {
                 return NotFound();
@@ -185,16 +173,19 @@ namespace FribergCarRental.Controllers
         // POST: BookingViewModels/Delete/5
         [HttpPost, ActionName("DeleteBooking")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteBookingConfirmed(int? id)
+        public async Task<IActionResult> DeleteBookingConfirmed(int id)
         {
 
-            var booking = await _bookingRepository.GetByIdAsync(id);
-            if (booking != null)
+            var bookingResponse = await _bookingService.GetById(id);
+            if (bookingResponse.Success == true)
             {
-                _bookingRepository.Delete(booking);
+                var deleteResponse = await _bookingService.Delete(bookingResponse.Data.BookingId);
+                if (deleteResponse.Success == false)
+                {
+                    return NotFound();
+                }
             }
 
-            await _bookingRepository.SaveChangesAsync();
             return RedirectToAction(nameof(Bookings));
         }
 
@@ -202,8 +193,12 @@ namespace FribergCarRental.Controllers
         // GET: Users
         public async Task<IActionResult> Users()
         {
-            var users = await _applicationUserRepository.GetAllAsync();
-            _userViewModels = _mapper.Map<List<UserViewModel>>(users);
+            var usersResponse = await _applicationUserService.GetApplicationUsers();
+            if (usersResponse.Success == false)
+            {
+                return NotFound();
+            }
+            _userViewModels = _mapper.Map<List<UserViewModel>>(usersResponse.Data);
             return View(_userViewModels);
         }
 
@@ -218,22 +213,25 @@ namespace FribergCarRental.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUser([Bind("NewPassword,UserName,FirstName,LastName,Address,City,ZipCode,PhoneNumber")] UserViewModel userViewModel)
+        public async Task<IActionResult> CreateUser([Bind("Password,UserName,FirstName,LastName,Address,City,ZipCode,PhoneNumber")] UserViewModel userViewModel)
         {
-            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(userViewModel.NewPassword))
+            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(userViewModel.Password))
             {
-                var user = new ApplicationUser
+                //var user = new ApplicationUserDto
+                //{
+                //    FirstName = userViewModel.FirstName,
+                //    LastName = userViewModel.LastName,
+                //    Address = userViewModel.Address,
+                //    City = userViewModel.City,
+                //    ZipCode = userViewModel.ZipCode,
+                //    PhoneNumber = userViewModel.PhoneNumber
+                //};
+                var user = _mapper.Map<CreateApplicationUserDto>(userViewModel);
+                var addUserResult = await _applicationUserService.AddApplicationUser(user);
+                if (addUserResult.Success == false)
                 {
-                    UserName = userViewModel.UserName,
-                    Email = userViewModel.UserName,
-                    FirstName = userViewModel.FirstName,
-                    LastName = userViewModel.LastName,
-                    Address = userViewModel.Address,
-                    City = userViewModel.City,
-                    ZipCode = userViewModel.ZipCode,
-                    PhoneNumber = userViewModel.PhoneNumber
-                };
-                await _applicationUserRepository.CreateUserAsync(user, userViewModel.NewPassword);
+                    return NotFound();
+                }
                 return RedirectToAction(nameof(Users));
             }
             return View(userViewModel);
@@ -246,8 +244,8 @@ namespace FribergCarRental.Controllers
                 return NotFound();
             }
 
-            var user = await _applicationUserRepository.GetByIdAsync(id);
-            var userViewModel = _mapper.Map<UserViewModel>(user);
+            var userResult = await _applicationUserService.GetApplicationUser(id);
+            var userViewModel = _mapper.Map<UserViewModel>(userResult);
 
             if (userViewModel == null)
             {
@@ -273,21 +271,22 @@ namespace FribergCarRental.Controllers
                 return View(userViewModel);
             }
 
-            var user = await _applicationUserRepository.GetByIdAsync(id);
-            if (user == null)
+            var userResult = await _applicationUserService.GetApplicationUser(id);
+            if (userResult.Success == false)
+            {
                 return NotFound();
-            _mapper.Map(userViewModel, user);
-            var result = await _applicationUserRepository.UpdateUserAsync(user);
-            if (result.Succeeded)
+            }
+            var result = await _applicationUserService.UpdateApplicationUser(userResult.Data.Id, userResult.Data);
+            if (result.Success == true)
             {
                 return RedirectToAction(nameof(Users));
             }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError("", error.Description);
-            }
-
+            //foreach (var error in result.Errors)
+            //{
+            //    ModelState.AddModelError("", error.Description);
+            //}
+            _mapper.Map(userViewModel, userResult);
             return View(userViewModel);
         }
 
@@ -299,8 +298,8 @@ namespace FribergCarRental.Controllers
             {
                 return NotFound();
             }
-            var user = await _applicationUserRepository.GetByIdAsync(id);
-            var userViewModel = _mapper.Map<UserViewModel>(user);
+            var userResponse = await _applicationUserService.GetApplicationUser(id);
+            var userViewModel = _mapper.Map<UserViewModel>(userResponse.Data);
             if (userViewModel == null)
             {
                 return NotFound();
@@ -313,23 +312,22 @@ namespace FribergCarRental.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedUser(string id)
         {
-            var user = await _applicationUserRepository.GetByIdAsync(id);
-            if (user != null)
+            var deleteUserResult = await _applicationUserService.DeleteApplicationUser(id);
+            if (deleteUserResult.Success == false)
             {
-                await _applicationUserRepository.DeleteUserAsync(user);
+                return View(deleteUserResult);
             }
-
             return RedirectToAction(nameof(Users));
         }
 
 
         public async Task<IActionResult> Images(int id)
         {
-            var car = await _carRepository.GetByIdAsync(id);
-            var images = await _imageRepository.GetAllImagesByCarIdAsync(id);
+            var carResponse = await _carService.GetCar(id);
+            var imagesResponse = await _imageService.GetImagesByCarId(id);
 
-            var viewModel = _mapper.Map<CarViewModel>(car);
-            viewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
+            var viewModel = _mapper.Map<CarViewModel>(carResponse.Data);
+            viewModel.Images = _mapper.Map<List<ImageViewModel>>(imagesResponse.Data);
             return View(viewModel);
         }
 
@@ -339,27 +337,27 @@ namespace FribergCarRental.Controllers
             {
                 return RedirectToAction(nameof(Images), new { id = id });
             }
-            var image = new Image()
+
+            var result = await _carService.GetCar(id);
+            var image = new ImageDto()
             {
                 CarId = id,
-                Car = await _carRepository.GetByIdAsync(id),
                 Path = newImagePath
             };
 
-            await _imageRepository.AddAsync(image);
-            await _imageRepository.SaveChangesAsync();
+            await _imageService.AddImage(image);
             return RedirectToAction(nameof(Images), new { id = id });
 
         }
 
         public async Task<IActionResult> DeleteImage(int id, int imageId)
         {
-            var image = await _imageRepository.GetByIdAsync(imageId);
-            if (image != null)
-            {
-                _imageRepository.Delete(image);
-                await _imageRepository.SaveChangesAsync();
-            }
+            var imageDeleteResult = await _imageService.DeleteImage(id);
+            //if (image != null)
+            //{
+            //    _imageService.Delete(image);
+            //    await _imageService.SaveChangesAsync();
+            //}
             return RedirectToAction(nameof(Images), new { id = id });
 
         }
