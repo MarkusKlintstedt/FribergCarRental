@@ -1,44 +1,40 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AutoMapper;
-using FribergCarRental.Core.Classes;
-using FribergCarRental.Core.Dtos;
-using FribergCarRental.DAL.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using ToDoListAPI.Constants;
+using ToDoListAPI.Dto;
+using ToDoListAPI.Models;
 
-namespace FribergCarRental.Api.Controllers
+namespace ToDoListAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IConfiguration configuration;
 
-        public ApplicationUserRepository _applicationUserRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IConfiguration _configuration;
-        public IMapper _mapper { get; set; }
-
-        public AuthController(ApplicationUserRepository applicationUserRepository, IMapper mapper, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public AuthController(UserManager<IdentityUser> userManager, IConfiguration configuration)
         {
-            _applicationUserRepository = applicationUserRepository;
-            _mapper = mapper;
             _userManager = userManager;
-            _configuration = configuration;
+            this.configuration = configuration;
         }
-
 
         [HttpPost]
         [Route("register")]
-        public async Task<IActionResult> Register([FromBody] CreateApplicationUserDto applicationUserDto)
+        public async Task<IActionResult> Register(UserDto userDto)
         {
             try
             {
-                var user = _mapper.Map<ApplicationUser>(applicationUserDto);
-                user.UserName = applicationUserDto.Email;
-                var result = await _applicationUserRepository.CreateUserAsync(user, applicationUserDto.Password);
+                IdentityUser user = new IdentityUser()
+                {
+                    UserName = userDto.Email,
+                    Email = userDto.Email
+                };
+                var result = await _userManager.CreateAsync(user, userDto.Password);
 
                 if (result.Succeeded == false)
                 {
@@ -48,8 +44,9 @@ namespace FribergCarRental.Api.Controllers
                     }
                     return BadRequest(ModelState);
                 }
-                return Accepted();
 
+                await _userManager.AddToRoleAsync(user, "User");
+                return Accepted();
             }
             catch (Exception ex)
             {
@@ -59,33 +56,28 @@ namespace FribergCarRental.Api.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<ActionResult<AuthResponse>> Login(LoginUserDto loginUserDto)
+        public async Task<ActionResult<AuthResponse>> Login(UserDto userDto)
         {
             try
             {
-                var user = await _applicationUserRepository.GetByEmailAsync(loginUserDto.Email);
-                if (user == null)
+                var user = await _userManager.FindByEmailAsync(userDto.Email);
+                var passwordValid = await _userManager.CheckPasswordAsync(user, userDto.Password);
+
+                if (user == null || passwordValid == false)
                 {
-                    return Unauthorized(loginUserDto);
+                    return Unauthorized(userDto);
                 }
 
-
-                var passwordValid = await _applicationUserRepository.CheckPasswordAsync(user, loginUserDto.Password);
-                if (passwordValid == false)
-                {
-                    return Unauthorized(loginUserDto);
-                }
-
-                string tokenstring = await GenerateToken(user);  // _tokenService.GenerateTokenAsync(user);
+                string tokenstring = await GenerateToken(user);
 
                 var response = new AuthResponse
                 {
-                    Email = user.Email,
+                    Email = userDto.Email,
                     Token = tokenstring,
                     UserId = user.Id
                 };
 
-                return Ok(response);
+                return Accepted(response);
             }
             catch (Exception ex)
             {
@@ -93,9 +85,9 @@ namespace FribergCarRental.Api.Controllers
             }
         }
 
-        private async Task<string> GenerateToken(ApplicationUser user)
+        private async Task<string> GenerateToken(IdentityUser user)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var roles = await _userManager.GetRolesAsync(user);
@@ -108,21 +100,19 @@ namespace FribergCarRental.Api.Controllers
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("uid", user.Id)
+                new Claim(CustomClaimTypes.Uid, user.Id)
             }.Union(roleClaims)
             .Union(userClaims);
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["JwtSettings:Issuer"],
-                audience: _configuration["JwtSettings:Audience"],
+                issuer: configuration["JwtSettings:Issuer"],
+                audience: configuration["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["JwtSettings:DurationInMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(configuration["JwtSettings:DurationInMinutes"])),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
 
         }
-
-
     }
 }

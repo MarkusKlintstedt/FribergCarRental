@@ -51,6 +51,7 @@ namespace FribergCarRental.Services.Base
             {
                 await GetBearerToken();
                 var data = await _client.BookingGETAsync(id);
+
                 response = new Response<BookingDto>
                 {
                     Success = true,
@@ -93,7 +94,7 @@ namespace FribergCarRental.Services.Base
         // -------------------------
         // Update booking
         // -------------------------
-        public async Task<Response<int>> Update(int id, BookingDto booking)
+        public async Task<Response<int>> Update(int id, EditBookingDto booking)
         {
             Response<int> response;
 
@@ -108,9 +109,15 @@ namespace FribergCarRental.Services.Base
                     Data = id
                 };
             }
-            catch (ApiException ex)
+            catch (ApiException apiEx)
             {
-                response = ConvertApiExceptions<int>(ex);
+                //Console.WriteLine("ApiException: " + apiEx.ToString());
+                response = ConvertApiExceptions<int>(apiEx);
+            }
+            catch (Exception ex)
+            {
+                //Console.WriteLine("General exception: " + ex.ToString());
+                throw;
             }
 
             return response;
@@ -146,53 +153,53 @@ namespace FribergCarRental.Services.Base
         // Get all with Car AND User
         // GET: api/booking/allwithcaranduser
         // -------------------------
-        public async Task<Response<List<BookingDto>>> GetAllWithCarAndUser()
-        {
-            Response<List<BookingDto>> response;
+        //public async Task<Response<List<BookingDto>>> GetAllWithCarAndUser()
+        //{
+        //    Response<List<BookingDto>> response;
 
-            try
-            {
-                await GetBearerToken();
-                var data = await _client.AllwithcaranduserAsync();
-                response = new Response<List<BookingDto>>
-                {
-                    Success = true,
-                    Data = data.ToList()
-                };
-            }
-            catch (ApiException ex)
-            {
-                response = ConvertApiExceptions<List<BookingDto>>(ex);
-            }
+        //    try
+        //    {
+        //        await GetBearerToken();
+        //        var data = await _client.AllwithcaranduserAsync();
+        //        response = new Response<List<BookingDto>>
+        //        {
+        //            Success = true,
+        //            Data = data.ToList()
+        //        };
+        //    }
+        //    catch (ApiException ex)
+        //    {
+        //        response = ConvertApiExceptions<List<BookingDto>>(ex);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         // -------------------------
         // Get all with car
         // GET: api/booking/allwithcar
         // -------------------------
-        public async Task<Response<List<BookingDto>>> GetAllWithCar()
-        {
-            Response<List<BookingDto>> response;
+        //public async Task<Response<List<BookingDto>>> GetAllWithCar()
+        //{
+        //    Response<List<BookingDto>> response;
 
-            try
-            {
-                await GetBearerToken();
-                var data = await _client.AllwithcarAsync();
-                response = new Response<List<BookingDto>>
-                {
-                    Success = true,
-                    Data = data.ToList()
-                };
-            }
-            catch (ApiException ex)
-            {
-                response = ConvertApiExceptions<List<BookingDto>>(ex);
-            }
+        //    try
+        //    {
+        //        await GetBearerToken();
+        //        var data = await _client.AllwithcarAsync();
+        //        response = new Response<List<BookingDto>>
+        //        {
+        //            Success = true,
+        //            Data = data.ToList()
+        //        };
+        //    }
+        //    catch (ApiException ex)
+        //    {
+        //        response = ConvertApiExceptions<List<BookingDto>>(ex);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         // -------------------------
         // Get all with car by user
@@ -205,7 +212,7 @@ namespace FribergCarRental.Services.Base
             try
             {
                 await GetBearerToken();
-                var data = await _client.AllwithcarbyuserAsync(userId);
+                var data = await _client.AllByUserIdAsync(userId);
                 response = new Response<List<BookingDto>>
                 {
                     Success = true,
@@ -220,7 +227,7 @@ namespace FribergCarRental.Services.Base
             catch (Exception ex)
             {
                 Console.WriteLine("General exception: " + ex.ToString());
-                throw; // låt den bubbla upp så vi ser vad som händer
+                throw;
             }
             //catch (ApiException ex)
             //{
@@ -234,27 +241,33 @@ namespace FribergCarRental.Services.Base
         // Get booking with car info
         // GET: api/booking/allwithcar/{id}
         // -------------------------
-        public async Task<Response<BookingDto>> GetBookingWithCar(int id)
-        {
-            Response<BookingDto> response;
+        //public async Task<Response<BookingDto>> GetBookingWithCar(int id)
+        //{
+        //    Response<BookingDto> response;
 
-            try
-            {
-                await GetBearerToken();
-                var data = await _client.WithcarAsync(id);
-                response = new Response<BookingDto>
-                {
-                    Success = true,
-                    Data = data
-                };
-            }
-            catch (ApiException ex)
-            {
-                response = ConvertApiExceptions<BookingDto>(ex);
-            }
+        //    try
+        //    {
+        //        await GetBearerToken();
+        //        var data = await _client.WithcarAsync(id);
+        //        response = new Response<BookingDto>
+        //        {
+        //            Success = true,
+        //            Data = data
+        //        };
+        //    }
+        //    catch (ApiException apiEx)
+        //    {
+        //        Console.WriteLine("ApiException: " + apiEx.ToString());
+        //        response = ConvertApiExceptions<BookingDto>(apiEx);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("General exception: " + ex.ToString());
+        //        throw;
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         // -------------------------
         // Get all bookings by car
@@ -267,7 +280,7 @@ namespace FribergCarRental.Services.Base
             try
             {
                 await GetBearerToken();
-                var data = await _client.AllbycarAsync(carId);
+                var data = await _client.AllByCarIdAsync(carId);
                 response = new Response<List<BookingDto>>
                 {
                     Success = true,

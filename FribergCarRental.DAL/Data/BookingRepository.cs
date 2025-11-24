@@ -8,19 +8,29 @@ namespace FribergCarRental.DAL.Data
         public BookingRepository(ApplicationDbContext applicationDbContext) : base(applicationDbContext)
         {
         }
-        public async Task<IEnumerable<Booking>> GetAllWithCarAsync()
-        {
-            return await applicationDbContext.Bookings.Include(b => b.Car).ToListAsync();
-        }
+        //public async Task<IEnumerable<Booking>> GetAllWithCarAsync()
+        //{
+        //    return await applicationDbContext.Bookings.Include(b => b.Car).ToListAsync();
+        //}
 
-        public async Task<IEnumerable<Booking>> GetAllWithCarAndUserAsync()
+        //public async Task<IEnumerable<Booking>> GetAllWithCarAndUserAsync() //Ska bort
+        //{
+        //    return await applicationDbContext.Bookings
+        //        .Include(b => b.Car)
+        //        .Include(b => b.ApplicationUser)
+        //        .ToListAsync();
+        //}
+
+        public override async Task<IEnumerable<Booking>> GetAllAsync()  //Är nya getall
         {
             return await applicationDbContext.Bookings
                 .Include(b => b.Car)
                 .Include(b => b.ApplicationUser)
                 .ToListAsync();
         }
-        public async Task<IEnumerable<Booking>> GetAllBookingsWithCarByUserIdAsync(string userId)
+
+
+        public async Task<IEnumerable<Booking>> GetAllByUserIdAsync(string userId)
         {
             return await applicationDbContext.Bookings
                 .Include(b => b.Car)
@@ -29,14 +39,27 @@ namespace FribergCarRental.DAL.Data
                 .ToListAsync();
         }
 
-        public async Task<Booking?> GetBookingWithCarByIdAsync(int? id)
+        //public async Task<Booking?> GetBookingWithCarByIdAsync(int? id)  //Borde bli nya GetById
+        //{
+        //    return await applicationDbContext.Bookings
+        //        .Include(b => b.Car)
+        //        .Include(b => b.ApplicationUser)
+        //        .FirstOrDefaultAsync(b => b.BookingId == id);
+        //}
+
+        public override async Task<Booking?> GetByIdAsync(int? id)  //Är nya GetById
         {
             return await applicationDbContext.Bookings
                 .Include(b => b.Car)
+                .Include(b => b.ApplicationUser)
                 .FirstOrDefaultAsync(b => b.BookingId == id);
         }
 
-        public async Task<List<Booking>> GetAllBookingsByCarIdAsync(int carId)
+
+
+
+
+        public async Task<List<Booking>> GetAllByCarIdAsync(int carId)
         {
             return await applicationDbContext.Bookings
                 .Where(b => b.Car != null && b.Car.CarId == carId)

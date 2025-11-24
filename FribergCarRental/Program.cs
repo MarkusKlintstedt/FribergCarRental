@@ -2,10 +2,8 @@ using Blazored.LocalStorage;
 using FribergCarRental.Client.Services.Base;
 using FribergCarRental.Data;
 using FribergCarRental.Middleware;
-//using FribergCarRental.Providers;
 using FribergCarRental.Services.Authentication;
 using FribergCarRental.Services.Base;
-//using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRental
 {
@@ -16,24 +14,23 @@ namespace FribergCarRental
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7264/") });
             builder.Services.AddBlazoredLocalStorage();
-            ////builder.Services.AddScoped<ApiAuthenticationStateProvider>();
-            ////builder.Services.AddScoped<AuthenticationStateProvider>(
-            ////    p => p.GetRequiredService<ApiAuthenticationStateProvider>());
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddHttpContextAccessor();
+
+
             builder.Services.AddAutoMapper(typeof(ClientMappingProfile));
-            //builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            builder.Services.AddScoped(sp =>
-            {
-                var handler = new HttpClientHandler
-                {
-                    UseCookies = true
-                };
-                return new HttpClient(handler)
-                {
-                    BaseAddress = new Uri("https://localhost:7264")
-                };
-            });
+            //builder.Services.AddScoped(sp =>
+            //{
+            //    var handler = new HttpClientHandler
+            //    {
+            //        UseCookies = true
+            //    };
+            //    return new HttpClient(handler)
+            //    {
+            //        BaseAddress = new Uri("https://localhost:7264")
+            //    };
+            //});
 
 
             builder.Services.AddScoped<FribergCarRental.Services.Base.IClient, FribergCarRental.Services.Base.Client>();
@@ -42,7 +39,6 @@ namespace FribergCarRental
             builder.Services.AddScoped<ImageService>();
             builder.Services.AddScoped<BookingService>();
             builder.Services.AddScoped<ApplicationUserService>();
-            builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddRazorPages();
 
@@ -60,19 +56,6 @@ namespace FribergCarRental
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
-
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            //    var roles = new[] { "Admin", "Customer" };
-            //    foreach (var role in roles)
-            //    {
-            //        if (!await roleManager.RoleExistsAsync(role))
-            //        {
-            //            await roleManager.CreateAsync(new IdentityRole(role));
-            //        }
-            //    }
-            //}
 
             app.Run();
         }

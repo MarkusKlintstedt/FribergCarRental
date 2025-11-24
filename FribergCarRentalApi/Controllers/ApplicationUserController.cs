@@ -40,11 +40,23 @@ namespace FribergCarRental.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApplicationUserDto>> AddUser([FromBody] CreateApplicationUserDto newApplicationUserDto)
+        public async Task<ActionResult> AddUser([FromBody] CreateApplicationUserDto newApplicationUserDto)
         {
             try
             {
-                var user = _mapper.Map<ApplicationUser>(newApplicationUserDto);
+                //var user = _mapper.Map<ApplicationUser>(newApplicationUserDto);
+                var user = new ApplicationUser()
+                {
+                    UserName = newApplicationUserDto.Email,
+                    Email = newApplicationUserDto.Email,
+                    FirstName = newApplicationUserDto.FirstName,
+                    LastName = newApplicationUserDto.LastName,
+                    Address = newApplicationUserDto.Address,
+                    City = newApplicationUserDto.City,
+                    ZipCode = newApplicationUserDto.ZipCode
+                };
+
+
                 user.UserName = newApplicationUserDto.Email;
                 var result = await _applicationUserRepository.CreateUserAsync(user, newApplicationUserDto.Password);
 
@@ -56,7 +68,7 @@ namespace FribergCarRental.Api.Controllers
                     }
                     return BadRequest(ModelState);
                 }
-                return Accepted();
+                return Ok();
 
             }
             catch (Exception ex)
@@ -67,7 +79,7 @@ namespace FribergCarRental.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUser(string id, [FromBody] ApplicationUserDto applicationUserDto)
+        public async Task<ActionResult> UpdateUser(string id, [FromBody] EditApplicationUserDto applicationUserDto)
         {
             if (id != applicationUserDto.Id)
             {

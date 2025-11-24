@@ -1,17 +1,23 @@
-﻿using FribergCarRental.Models;
+﻿using AutoMapper;
+using FribergCarRental.Models;
 using FribergCarRental.Services.Authentication;
 using FribergCarRental.Services.Base;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRental.Controllers
 {
-    public class AuthController : BaseController
+    public class AuthController : Controller
     {
         private readonly IAuthService authenticationService;
+        private readonly IMapper _mapper;
+        private ApplicationUserService _applicationUserService;
 
-        public AuthController(IAuthService authenticationService) : base(authenticationService)
+
+        public AuthController(IAuthService authenticationService, IMapper mapper, ApplicationUserService applicationUserService)
         {
             this.authenticationService = authenticationService;
+            _mapper = mapper;
+            _applicationUserService = applicationUserService;
         }
 
         [HttpGet]
@@ -41,54 +47,43 @@ namespace FribergCarRental.Controllers
             }
 
             return RedirectToAction("Index", "Home");
-
-
-            //var loginDto = new LoginUserDto
-            //{
-            //    Email = model.Email,
-            //    Password = model.Password
-            //};
-
-            //try
-            //{
-            //    // Anropar API via AuthenticationService
-            //    var result = await authenticationService.AuthenticateAsync(loginDto);
-
-            //    if (!result)
-            //    {
-            //        ModelState.AddModelError("", "Felaktig e-post eller lösenord.");
-            //        return View(model);
-            //    }
-
-            //    // Hämta användar-id från authentication service
-            //    var userId = await authenticationService.GetUserId();
-
-            //    // Skapa cookie med claims
-            //    var claims = new List<Claim>
-            //    {
-            //        new Claim(ClaimTypes.Name, model.Email),
-            //        new Claim(ClaimTypes.NameIdentifier, userId!)
-            //    };
-
-            //    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            //    var principal = new ClaimsPrincipal(identity);
-
-            //    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-            //    return RedirectToAction("Index", "Home");
-            //}
-            //catch
-            //{
-            //    ModelState.AddModelError("", "Inloggningen misslyckades.");
-            //    return View(model);
-            //}
         }
 
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-            authenticationService.Logout();
+            await authenticationService.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+
+        // GET: Users/Create
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        // POST: User/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register([Bind("Password,FirstName,LastName,Address,City,ZipCode,Email")] CreateUserViewModel userViewModel)
+        {
+            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(userViewModel.Password))
+            {
+                var user = _mapper.Map<CreateApplicationUserDto>(userViewModel);
+                var addUserResult = await _applicationUserService.AddApplicationUser(user);
+                if (addUserResult.Success == false)
+                {
+                    return NotFound();
+                }
+                return RedirectToAction("Index", "Home");
+
+            }
+            return View(userViewModel);
+        }
+
     }
 }
+

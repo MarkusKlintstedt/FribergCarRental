@@ -2,7 +2,7 @@
 
 namespace FribergCarRental.Core.Dtos
 {
-    public class CreateApplicationUserDto
+    public class EditApplicationUserDto
     {
         [Required]
         [MaxLength(50)]
@@ -23,7 +23,10 @@ namespace FribergCarRental.Core.Dtos
         [EmailAddress]
         public string Email { get; set; }
         [Required]
-        public string Password { get; set; }
+        public string Id { get; set; }
+
 
     }
+
+
 }

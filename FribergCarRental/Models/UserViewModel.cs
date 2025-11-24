@@ -7,10 +7,6 @@ namespace FribergCarRental.Models
         public String? Id { get; set; }
         [EmailAddress]
         public string? Email { get; set; }
-        [DataType(DataType.Password)]
-        public string? Password { get; set; }
-        [DataType(DataType.PhoneNumber)]
-        public string PhoneNumber { get; set; } = "";
         [MaxLength(50)]
         public string FirstName { get; set; } = "";
         [MaxLength(50)]

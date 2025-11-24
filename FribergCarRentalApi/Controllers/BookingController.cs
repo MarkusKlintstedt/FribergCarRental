@@ -8,6 +8,7 @@ namespace FribergCarRental.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize]
     public class BookingController : ControllerBase
     {
         public BookingRepository _bookingRepository { get; set; }
@@ -44,49 +45,36 @@ namespace FribergCarRental.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBooking([FromBody] CreateBookingDto dto)
+        public async Task<ActionResult> CreateBooking([FromBody] CreateBookingDto createBookingDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-
-
-
-            //// 1. Hämta userId från JWT
-            //var userId = User?.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            ////var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (userId == null)
-            //    return Unauthorized("Could not identify user from token.");
-
-            // 2. Kontrollera att bilen finns
-            var car = await _carRepository.GetByIdAsync(dto.CarId);
+            var car = await _carRepository.GetByIdAsync(createBookingDto.CarId);
             if (car == null)
                 return NotFound("Car not found.");
 
-            // 3. Validera datum
-            if (dto.RentStartDate >= dto.RentEndDate)
+            if (createBookingDto.RentStartDate >= createBookingDto.RentEndDate)
                 return BadRequest("Rent end date must be after start date.");
 
-            if (dto.RentStartDate < DateOnly.FromDateTime(DateTime.Now))
+            if (createBookingDto.RentStartDate < DateOnly.FromDateTime(DateTime.Now))
                 return BadRequest("Start date cannot be in the past.");
 
-            // 4. Kolla överlappande bokningar
-            var existingBookings = await _bookingRepository.GetAllBookingsByCarIdAsync(dto.CarId);
+            var existingBookings = await _bookingRepository.GetAllByCarIdAsync(createBookingDto.CarId);
 
             bool overlaps = existingBookings.Any(b =>
-                dto.RentStartDate < b.RentEndDate &&
-                dto.RentEndDate > b.RentStartDate);
+                createBookingDto.RentStartDate < b.RentEndDate &&
+                createBookingDto.RentEndDate > b.RentStartDate);
 
             if (overlaps)
                 return BadRequest("The car is already booked for the selected dates.");
 
-            // 5. Skapa bokningen
             var booking = new Booking
             {
-                CarId = dto.CarId,
-                ApplicationUser = await _applicationUserRepository.GetByIdAsync(dto.UserId),
-                RentStartDate = dto.RentStartDate,
-                RentEndDate = dto.RentEndDate
+                CarId = createBookingDto.CarId,
+                ApplicationUser = await _applicationUserRepository.GetByIdAsync(createBookingDto.UserId),
+                RentStartDate = createBookingDto.RentStartDate,
+                RentEndDate = createBookingDto.RentEndDate
             };
 
             await _bookingRepository.AddAsync(booking);
@@ -108,14 +96,14 @@ namespace FribergCarRental.Api.Controllers
         //}
 
         //[HttpPost]
-        //public async Task<ActionResult<BookingDto>> AddBooking([FromBody] BookingDto bookingDto)
+        //public async Task<ActionResult<BookingDto>> AddBooking([FromBody] BookingDto editBookingDto)
         //{
         //    if (!ModelState.IsValid)
         //    {
         //        return BadRequest(ModelState);
         //    }
 
-        //    var booking = _mapper.Map<Booking>(bookingDto);
+        //    var booking = _mapper.Map<Booking>(editBookingDto);
         //    await _bookingRepository.AddAsync(booking);
         //    await _bookingRepository.SaveChangesAsync();
 
@@ -124,9 +112,9 @@ namespace FribergCarRental.Api.Controllers
         //}
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> UpdateBooking(int id, [FromBody] BookingDto bookingDto)
+        public async Task<ActionResult> UpdateBooking(int id, [FromBody] EditBookingDto editBookingDto)
         {
-            if (id != bookingDto.BookingId)
+            if (id != editBookingDto.BookingId)
             {
                 return BadRequest("Id mismatch");
             }
@@ -137,7 +125,7 @@ namespace FribergCarRental.Api.Controllers
                 return NotFound();
             }
 
-            _mapper.Map(bookingDto, existingBooking);
+            _mapper.Map(editBookingDto, existingBooking);
             _bookingRepository.Update(existingBooking);
             await _bookingRepository.SaveChangesAsync();
 
@@ -153,50 +141,55 @@ namespace FribergCarRental.Api.Controllers
                 return NotFound();
             }
 
+            if (booking.RentStartDate < DateOnly.FromDateTime(DateTime.Today))
+            {
+                return BadRequest("You cannot delete a booking that has already started.");
+            }
+
             _bookingRepository.Delete(booking);
             await _bookingRepository.SaveChangesAsync();
             return Ok();
         }
 
-        [HttpGet("allwithcaranduser")]
-        public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsWithCarAndUser()
-        {
-            var bookings = await _bookingRepository.GetAllWithCarAndUserAsync();
-            var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
-            return Ok(bookingDtos);
-        }
+        //[HttpGet("allwithcaranduser")]
+        //public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsWithCarAndUser()
+        //{
+        //    var bookings = await _bookingRepository.GetAllAsync();
+        //    var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
+        //    return Ok(bookingDtos);
+        //}
 
-        [HttpGet("allwithcar")]
-        public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllWithCar()
-        {
-            var bookings = await _bookingRepository.GetAllWithCarAsync();
-            var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
-            return Ok(bookingDtos);
-        }
+        //[HttpGet("allwithcar")]
+        //public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllWithCar()
+        //{
+        //    var bookings = await _bookingRepository.GetAllWithCarAsync();
+        //    var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
+        //    return Ok(bookingDtos);
+        //}
 
-        [HttpGet("allwithcarbyuser/{userId}")]
+        [HttpGet("AllByUserId/{userId}")]
         public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsByUser(string userId)
         {
-            var bookings = await _bookingRepository.GetAllBookingsWithCarByUserIdAsync(userId);
+            var bookings = await _bookingRepository.GetAllByUserIdAsync(userId);
             var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
             return Ok(bookingDtos);
         }
 
-        [HttpGet("withcar/{id}")]
-        public async Task<ActionResult<BookingDto>> GetBookingWithCarById(int id)
-        {
-            var booking = await _bookingRepository.GetBookingWithCarByIdAsync(id);
-            if (booking == null)
-                return NotFound();
+        //[HttpGet("withcar/{id}")]
+        //public async Task<ActionResult<BookingDto>> GetBookingWithCarById(int id)
+        //{
+        //    var booking = await _bookingRepository.GetByIdAsync(id);
+        //    if (booking == null)
+        //        return NotFound();
 
-            var bookingDto = _mapper.Map<BookingDto>(booking);
-            return Ok(bookingDto);
-        }
+        //    var editBookingDto = _mapper.Map<BookingDto>(booking);
+        //    return Ok(editBookingDto);
+        //}
 
-        [HttpGet("allbycar/{carId}")]
+        [HttpGet("AllByCarId/{carId}")]
         public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsByCar(int carId)
         {
-            var bookings = await _bookingRepository.GetAllBookingsByCarIdAsync(carId);
+            var bookings = await _bookingRepository.GetAllByCarIdAsync(carId);
             var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
             return Ok(bookingDtos);
         }

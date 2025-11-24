@@ -2,13 +2,11 @@
 using FribergCarRental.Models;
 using FribergCarRental.Services.Authentication;
 using FribergCarRental.Services.Base;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FribergCarRental.Controllers
 {
-    [Authorize]
     public class BookingController : BaseController
     {
         private readonly IMapper _mapper;
@@ -31,7 +29,7 @@ namespace FribergCarRental.Controllers
         // GET: BookingViewModels
         public async Task<IActionResult> Index()
         {
-            var userId = await _authenticationService.GetUserId();
+            var userId = User.FindFirst("uid")?.Value; //  _authenticationService.GetUserId();
             //var user = await _userManager.GetUserAsync(User);
             if (userId == null)
             {
@@ -45,7 +43,7 @@ namespace FribergCarRental.Controllers
         // GET: BookingViewModels/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var bookingResponse = await _bookingService.GetBookingWithCar(id);
+            var bookingResponse = await _bookingService.GetById(id);
             var bookingViewModel = _mapper.Map<BookingViewModel>(bookingResponse.Data);
 
             if (bookingViewModel == null)
@@ -77,7 +75,7 @@ namespace FribergCarRental.Controllers
             if (!ModelState.IsValid)
                 return View(booking);
 
-            var userId = await _authenticationService.GetUserId();
+            var userId = User.FindFirst("uid")?.Value;
 
             var createBookingDto = new CreateBookingDto
             {
@@ -89,11 +87,13 @@ namespace FribergCarRental.Controllers
 
             var response = await _bookingService.Create(createBookingDto);
 
-            if (!response.Success)
+
+            if (response.Success == false)
             {
-                ModelState.AddModelError(string.Empty, response.Message);
-                return View(booking);
+                TempData["Error"] = response.Message + " " + response.ValidationErrors;
+                return RedirectToAction(nameof(Index));
             }
+
 
             TempData["SuccessfulBooking"] =
                 $"Booking created successfully!";
@@ -101,72 +101,10 @@ namespace FribergCarRental.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        //public async Task<IActionResult> Create([Bind("BookingId,CarId,RentStartDate,RentEndDate")] BookingViewModel bookingViewModel)
-        //{
-        //    var carResponse = await _carService.GetCar(bookingViewModel.CarId);
-        //    if (carResponse.Success == false)
-        //    {
-        //        ModelState.AddModelError(string.Empty, "Selected car does not exist.");
-        //        var carsResponse = await _carService.GetCars();
-        //        ViewBag.Cars = new SelectList(carsResponse.Data, "CarId", "DisplayBrandModel");
-        //        return View(bookingViewModel);
-        //    }
-        //    bookingViewModel.Car = _mapper.Map<CarViewModel>(carResponse.Data);
-
-        //    var userId = await _authenticationService.GetUserId();
-        //    var userResponse = await _applicationUserService.GetApplicationUser(userId);
-        //    var tempUser = _mapper.Map<UserViewModel>(userResponse.Data);
-        //    bookingViewModel.ApplicationUser = tempUser;
-
-        //    var bookingsResponse = await _bookingService.GetAllByCar(bookingViewModel.CarId);
-        //    _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookingsResponse.Data);
-        //    foreach (var oldBooking in _bookingViewModels)
-        //    {
-        //        if (BookingIsOverlapping(bookingViewModel, oldBooking))
-        //        {
-        //            ModelState.AddModelError(string.Empty, "This car is already booked for the selected dates.");
-        //            var carsResponse = await _carService.GetCars();
-        //            ViewBag.Cars = new SelectList(carsResponse.Data, "CarId", "DisplayBrandModel");
-        //            return View(bookingViewModel);
-        //        }
-        //    }
-
-        //    if (!ModelState.IsValid)
-        //    {
-        //        var carsResponse = await _carService.GetCars();
-        //        ViewBag.Cars = new SelectList(carsResponse.Data, "CarId", "DisplayBrandModel");
-        //        return View(bookingViewModel);
-        //    }
-
-        //    var createBookingDto = _mapper.Map<BookingDto>(bookingViewModel);
-        //    await _bookingService.Create(createBookingDto);
-        //    TempData["SuccessfulBooking"] = $"Booking created successfully! {bookingViewModel.Car.Brand} {bookingViewModel.Car.ModelName} " +
-        //        $"reserved from {bookingViewModel.RentStartDate} to {bookingViewModel.RentEndDate}.";
-        //    return RedirectToAction(nameof(Index));
-        //}
-
-        private bool BookingIsOverlapping(BookingViewModel newBooking, BookingViewModel existingBooking)
-        {
-            if (newBooking.CarId == existingBooking.CarId &&
-                  newBooking.RentStartDate <= existingBooking.RentEndDate &&
-                  newBooking.RentStartDate >= existingBooking.RentStartDate)
-            {
-                return true;
-            }
-            if (newBooking.CarId == existingBooking.CarId &&
-                   newBooking.RentEndDate >= existingBooking.RentStartDate &&
-                   newBooking.RentEndDate <= existingBooking.RentEndDate)
-            {
-                return true;
-            }
-            return false;
-        }
-
-
         // GET: BookingViewModels/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var bookingResponse = await _bookingService.GetBookingWithCar(id);
+            var bookingResponse = await _bookingService.GetById(id);
             if (bookingResponse.Success == false)
             {
                 return NotFound();
@@ -179,7 +117,7 @@ namespace FribergCarRental.Controllers
         // POST: BookingViewModels/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookingId,RentStartDate,RentEndDate")] BookingViewModel bookingViewModel)
+        public async Task<IActionResult> Edit(int id, [Bind("BookingId,RentStartDate,RentEndDate,CarId")] BookingViewModel bookingViewModel)
         {
             if (id != bookingViewModel.BookingId)
             {
@@ -188,7 +126,8 @@ namespace FribergCarRental.Controllers
 
             if (ModelState.IsValid)
             {
-                var booking = _mapper.Map<BookingDto>(bookingViewModel);
+                var booking = _mapper.Map<EditBookingDto>(bookingViewModel);
+                booking.UserId = User.FindFirst("uid")?.Value;
                 var updateResponse = await _bookingService.Update(id, booking);
                 if (updateResponse.Success == false)
                 {
@@ -202,7 +141,7 @@ namespace FribergCarRental.Controllers
         // GET: BookingViewModels/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var bookingResponse = await _bookingService.GetBookingWithCar(id);
+            var bookingResponse = await _bookingService.GetById(id);
             if (bookingResponse.Success == false)
             {
                 return NotFound();
@@ -226,15 +165,18 @@ namespace FribergCarRental.Controllers
 
             if (bookingResponse.Success == false)
             {
-                return NotFound();
+                TempData["Error"] = bookingResponse.Message + " " + bookingResponse.ValidationErrors;
+                return RedirectToAction(nameof(Index));
             }
 
-            if (bookingResponse.Data.RentStartDate < DateOnly.FromDateTime(DateTime.Today))
+            var deleteResult = await _bookingService.Delete(bookingResponse.Data.BookingId);
+
+            if (deleteResult.Success == false)
             {
-                ModelState.AddModelError(string.Empty, "You cannot delete a booking that has already started.");
-                return View(_mapper.Map<BookingViewModel>(bookingResponse));
+                TempData["Error"] = deleteResult.Message + " " + deleteResult.ValidationErrors;
+                return RedirectToAction(nameof(Index));
             }
-            var deleteResult = _bookingService.Delete(bookingResponse.Data.BookingId);
+
             return RedirectToAction(nameof(Index));
         }
     }

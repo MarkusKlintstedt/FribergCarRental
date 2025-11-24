@@ -36,7 +36,7 @@ namespace FribergCarRental.Services.Authentication
             return true;
         }
 
-        public async Task Logout()
+        public async Task LogoutAsync()
         {
             httpContextAccessor.HttpContext.Response.Cookies.Delete("jwtToken");
         }

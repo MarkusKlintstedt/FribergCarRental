@@ -1,7 +1,6 @@
 using System.Text;
 using FribergCarRental.Api.Mappings;
 using FribergCarRental.Core.Classes;
-using FribergCarRental.Core.Services;
 using FribergCarRental.DAL.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -21,23 +20,6 @@ namespace FribergCarRentalApi
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
-            ////builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-            ////builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            ////    .AddRoles<IdentityRole>()
-            ////    .AddEntityFrameworkStores<ApplicationDbContext>();
-
-
-
-            //        builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            //.AddRoles<IdentityRole>()
-            //.AddEntityFrameworkStores<ApplicationDbContext>();
-
-            builder.Services.AddIdentityCore<ApplicationUser>()
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-
-
-            builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -45,21 +27,20 @@ namespace FribergCarRentalApi
             builder.Services.AddScoped<CarRepository>();
             builder.Services.AddScoped<BookingRepository>();
             builder.Services.AddScoped<ApplicationUserRepository>();
-            builder.Services.AddScoped<TokenService>();
+            builder.Services.AddScoped<ImageRepository>();
+            //builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
+
+
+            builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
             builder.Services.AddCors(options =>
             {
-                //options.AddPolicy("AllowAll",
-                //    b => b.AllowAnyMethod()
-                //    .AllowAnyHeader()
-                //    .AllowAnyOrigin());
-                options.AddPolicy("AllowClient", b =>
-        b.WithOrigins("https://localhost:7104")
-         .AllowAnyHeader()
-         .AllowAnyMethod()
-         .AllowCredentials());
-
+                options.AddPolicy("AllowAll",
+                    b => b.AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowAnyOrigin());
             });
 
             builder.Services.AddAuthentication(options =>
@@ -79,27 +60,27 @@ namespace FribergCarRentalApi
                     ValidAudience = builder.Configuration["JwtSettings:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
                 };
+                options.RequireHttpsMetadata = false; // för lokalt arbete
+                options.SaveToken = true;
                 options.Events = new JwtBearerEvents
                 {
-                    OnMessageReceived = context =>
+                    OnAuthenticationFailed = c =>
                     {
-                        Console.WriteLine("OnMessageReceived körs...");
-                        foreach (var c in context.HttpContext.Request.Cookies)
-                        {
-                            Console.WriteLine($"Cookie: {c.Key} = {c.Value}");
-                        }
-                        var token = context.HttpContext.Request.Cookies["jwtToken"];
-                        Console.WriteLine("Token hittad i cookie: " + (token != null));
-                        if (!string.IsNullOrEmpty(token))
-                        {
-                            context.Token = token;
-                        }
+                        Console.WriteLine("JWT ERROR: " + c.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = c =>
+                    {
+                        Console.WriteLine("JWT VALIDATED for: " + c.Principal.Identity.Name);
                         return Task.CompletedTask;
                     }
                 };
+
             });
 
-
+            Console.WriteLine("Issuer: " + builder.Configuration["JwtSettings:Issuer"]);
+            Console.WriteLine("Audience: " + builder.Configuration["JwtSettings:Audience"]);
+            Console.WriteLine("Key: " + builder.Configuration["JwtSettings:Key"]);
 
 
             var app = builder.Build();
@@ -112,9 +93,19 @@ namespace FribergCarRentalApi
             }
 
             app.UseHttpsRedirection();
-            app.UseCors("AllowClient");
+            app.UseCors("AllowAll");
+
             app.UseAuthentication();
             app.UseAuthorization();
+
+
+            app.Use(async (context, next) =>
+            {
+                Console.WriteLine("--- INCOMING REQUEST ---");
+                Console.WriteLine("Auth Header: " + context.Request.Headers["Authorization"].FirstOrDefault());
+                await next();
+            });
+
 
 
             app.MapControllers();

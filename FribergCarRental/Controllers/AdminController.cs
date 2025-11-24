@@ -42,11 +42,6 @@ namespace FribergCarRental.Controllers
         {
             var carsResponse = await _carService.GetCars();
             _carViewModels = _mapper.Map<List<CarViewModel>>(carsResponse.Data);
-            foreach (var car in _carViewModels)
-            {
-                var imageResponse = await _imageService.GetImage(car.CarId);
-                car.Images = _mapper.Map<List<ImageViewModel>>(imageResponse.Data);
-            }
             return View(_carViewModels);
         }
 
@@ -141,7 +136,7 @@ namespace FribergCarRental.Controllers
         // GET: BookingViewModels
         public async Task<IActionResult> Bookings()
         {
-            var bookingsResponse = await _bookingService.GetAllWithCarAndUser();
+            var bookingsResponse = await _bookingService.GetAll();
             if (bookingsResponse.Success == false)
             {
                 return NotFound();
@@ -161,7 +156,7 @@ namespace FribergCarRental.Controllers
                 return NotFound();
             }
 
-            var bookingViewModel = _mapper.Map<BookingViewModel>(bookingResponse);
+            var bookingViewModel = _mapper.Map<BookingViewModel>(bookingResponse.Data);
             if (bookingViewModel == null)
             {
                 return NotFound();
@@ -213,19 +208,10 @@ namespace FribergCarRental.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUser([Bind("Password,UserName,FirstName,LastName,Address,City,ZipCode,PhoneNumber")] UserViewModel userViewModel)
+        public async Task<IActionResult> CreateUser([Bind("Password,FirstName,LastName,Address,City,ZipCode,Email")] CreateUserViewModel userViewModel)
         {
             if (ModelState.IsValid && !string.IsNullOrWhiteSpace(userViewModel.Password))
             {
-                //var user = new ApplicationUserDto
-                //{
-                //    FirstName = userViewModel.FirstName,
-                //    LastName = userViewModel.LastName,
-                //    Address = userViewModel.Address,
-                //    City = userViewModel.City,
-                //    ZipCode = userViewModel.ZipCode,
-                //    PhoneNumber = userViewModel.PhoneNumber
-                //};
                 var user = _mapper.Map<CreateApplicationUserDto>(userViewModel);
                 var addUserResult = await _applicationUserService.AddApplicationUser(user);
                 if (addUserResult.Success == false)
@@ -245,7 +231,7 @@ namespace FribergCarRental.Controllers
             }
 
             var userResult = await _applicationUserService.GetApplicationUser(id);
-            var userViewModel = _mapper.Map<UserViewModel>(userResult);
+            var userViewModel = _mapper.Map<UserViewModel>(userResult.Data);
 
             if (userViewModel == null)
             {
@@ -259,7 +245,7 @@ namespace FribergCarRental.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditUser(String id, [Bind("Id,UserName,FirstName,LastName,Address,City,ZipCode,PhoneNumber")] UserViewModel userViewModel)
+        public async Task<IActionResult> EditUser(String id, [Bind("Id,FirstName,LastName,Address,City,ZipCode,Email")] UserViewModel userViewModel)
         {
             if (id != userViewModel.Id)
             {
@@ -271,12 +257,14 @@ namespace FribergCarRental.Controllers
                 return View(userViewModel);
             }
 
+            var editedUser = _mapper.Map<EditApplicationUserDto>(userViewModel);
+
             var userResult = await _applicationUserService.GetApplicationUser(id);
             if (userResult.Success == false)
             {
                 return NotFound();
             }
-            var result = await _applicationUserService.UpdateApplicationUser(userResult.Data.Id, userResult.Data);
+            var result = await _applicationUserService.UpdateApplicationUser(userResult.Data.Id, editedUser);
             if (result.Success == true)
             {
                 return RedirectToAction(nameof(Users));
@@ -286,7 +274,7 @@ namespace FribergCarRental.Controllers
             //{
             //    ModelState.AddModelError("", error.Description);
             //}
-            _mapper.Map(userViewModel, userResult);
+            _mapper.Map(userViewModel, userResult.Data);
             return View(userViewModel);
         }
 

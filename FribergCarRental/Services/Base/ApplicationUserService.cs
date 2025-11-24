@@ -63,10 +63,10 @@ namespace FribergCarRental.Services.Base
             try
             {
                 await GetBearerToken();
-                var result = await _client.ApplicationUserPOSTAsync(user);
+                await _client.ApplicationUserPOSTAsync(user);
                 response = new Response<ApplicationUserDto>
                 {
-                    Data = result,
+                    Data = null,
                     Success = true
                 };
             }
@@ -78,7 +78,7 @@ namespace FribergCarRental.Services.Base
             return response;
         }
 
-        public async Task<Response<string>> UpdateApplicationUser(string id, ApplicationUserDto user)
+        public async Task<Response<string>> UpdateApplicationUser(string id, EditApplicationUserDto user)
         {
             Response<string> response = new();
 

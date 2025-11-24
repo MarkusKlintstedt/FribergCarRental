@@ -13,6 +13,7 @@
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="BookingId" />
+            <input type="hidden" asp-for="CarId" />
             <div class="form-group">
                 <label asp-for="RentStartDate" class="control-label">Start date</label>
                 <input asp-for="RentStartDate" class="form-control" />

@@ -8,6 +8,7 @@ namespace FribergCarRentalApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize]
     public class CarController : ControllerBase
     {
         public CarRepository _carRepository { get; set; }

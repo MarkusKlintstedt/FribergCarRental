@@ -21,7 +21,7 @@ namespace FribergCarRental.DAL.Data
             applicationDbContext.Remove<T>(entity);
         }
 
-        public async Task<T?> GetByIdAsync(int? id)
+        public virtual async Task<T?> GetByIdAsync(int? id)
         {
             return await applicationDbContext.FindAsync<T>(id);
         }

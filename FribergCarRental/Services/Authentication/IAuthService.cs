@@ -9,6 +9,6 @@ namespace FribergCarRental.Services.Authentication
         ClaimsPrincipal? GetCurrentUser();
         Task<string?> GetUserId();
         string? GetUserName();
-        public Task Logout();
+        public Task LogoutAsync();
     }
 }
