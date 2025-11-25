@@ -5,8 +5,8 @@ using FribergCarRental.DAL.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
-
 
 namespace FribergCarRentalApi
 {
@@ -31,7 +31,7 @@ namespace FribergCarRentalApi
             //builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
-
+            IdentityModelEventSource.ShowPII = true;
 
             builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
