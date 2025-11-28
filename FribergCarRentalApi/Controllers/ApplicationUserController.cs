@@ -2,12 +2,14 @@
 using FribergCarRental.Core.Classes;
 using FribergCarRental.Core.Dtos;
 using FribergCarRental.DAL.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRental.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class ApplicationUserController : ControllerBase
     {
         public ApplicationUserRepository _applicationUserRepository { get; set; }

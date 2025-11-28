@@ -1,17 +1,14 @@
-﻿using Blazored.LocalStorage;
-using FribergCarRental.Client.Services.Base;
+﻿using FribergCarRental.Client.Services.Base;
 
 namespace FribergCarRental.Services.Base
 {
     public class CarService : BaseHttpService
     {
         private readonly IClient _client;
-        public CarService(ILocalStorageService localStorage, IClient client, IHttpContextAccessor httpContextAccessor) : base(localStorage, client, httpContextAccessor)
+        public CarService(IClient client, IHttpContextAccessor httpContextAccessor) : base(client, httpContextAccessor)
         {
             _client = client;
         }
-
-
 
         public async Task<Response<List<CarDto>>> GetCars()
         {

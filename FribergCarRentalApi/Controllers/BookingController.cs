@@ -2,13 +2,14 @@
 using FribergCarRental.Core.Classes;
 using FribergCarRental.Core.Dtos;
 using FribergCarRental.DAL.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRental.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class BookingController : ControllerBase
     {
         public BookingRepository _bookingRepository { get; set; }

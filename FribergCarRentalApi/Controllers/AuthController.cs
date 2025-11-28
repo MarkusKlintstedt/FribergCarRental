@@ -76,7 +76,7 @@ namespace FribergCarRental.Api.Controllers
                     return Unauthorized(loginUserDto);
                 }
 
-                string tokenstring = await GenerateToken(user);  // _tokenService.GenerateTokenAsync(user);
+                string tokenstring = await GenerateToken(user);
 
                 var response = new AuthResponse
                 {

@@ -1,5 +1,4 @@
-﻿using Blazored.LocalStorage;
-using FribergCarRental.Client.Services.Base;
+﻿using FribergCarRental.Client.Services.Base;
 
 namespace FribergCarRental.Services.Base
 {
@@ -8,7 +7,7 @@ namespace FribergCarRental.Services.Base
         private readonly IClient _client;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ApplicationUserService(ILocalStorageService localStorage, IClient client, IHttpContextAccessor httpContextAccessor) : base(localStorage, client, httpContextAccessor)
+        public ApplicationUserService(IClient client, IHttpContextAccessor httpContextAccessor) : base(client, httpContextAccessor)
         {
             _client = client;
 

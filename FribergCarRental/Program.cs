@@ -1,4 +1,3 @@
-using Blazored.LocalStorage;
 using FribergCarRental.Client.Services.Base;
 using FribergCarRental.Data;
 using FribergCarRental.Middleware;
@@ -12,11 +11,13 @@ namespace FribergCarRental
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddHttpContextAccessor();
+
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7264/") });
-            builder.Services.AddBlazoredLocalStorage();
+            //builder.Services.AddHttpClient("ApiClient", client => client.BaseAddress = new Uri("https://localhost:7264/"))
+            //                .AddHttpMessageHandler<BearerTokenHandler>();
 
             builder.Services.AddControllersWithViews();
-            builder.Services.AddHttpContextAccessor();
 
 
             builder.Services.AddAutoMapper(typeof(ClientMappingProfile));
