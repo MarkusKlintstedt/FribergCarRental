@@ -10,15 +10,14 @@ namespace FribergCarRental.DAL.Data
 
         }
 
-        public async Task<List<Car>> GetCarsWithImagesAsync()
+        public override async Task<IEnumerable<Car>> GetAllAsync()
         {
             return await applicationDbContext.Cars.Include(c => c.Images).ToListAsync();
         }
 
-        public async Task<Car> GetCarWithImagesAsync(int id)
+        public override async Task<Car> GetByIdAsync(int? id)
         {
             return await applicationDbContext.Cars.Include(c => c.Images).FirstOrDefaultAsync(c => c.CarId == id);
         }
-
     }
 }

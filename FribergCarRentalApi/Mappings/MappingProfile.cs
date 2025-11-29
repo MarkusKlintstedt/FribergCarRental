@@ -17,11 +17,6 @@ namespace FribergCarRental.Api.Mappings
             CreateMap<ApplicationUser, ApplicationUserDto>().ReverseMap();
             CreateMap<CreateApplicationUserDto, ApplicationUserDto>();
             CreateMap<EditApplicationUserDto, ApplicationUser>();
-            //CreateMap<ApplicationUser, CreateApplicationUserDto>()
-            //    .ReverseMap()
-            //    .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            //    .ForMember(dest => dest.SecurityStamp, opt => opt.Ignore())
-            //.ForSourceMember(src => src.Password, opt => opt.DoNotValidate());
         }
 
     }

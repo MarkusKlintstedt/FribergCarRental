@@ -16,10 +16,10 @@ namespace FribergCarRental.Api.Controllers
     public class AuthController : ControllerBase
     {
 
-        public ApplicationUserRepository _applicationUserRepository;
+        private readonly ApplicationUserRepository _applicationUserRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
-        public IMapper _mapper { get; set; }
+        private readonly IMapper _mapper;
 
         public AuthController(ApplicationUserRepository applicationUserRepository, IMapper mapper, UserManager<ApplicationUser> userManager, IConfiguration configuration)
         {

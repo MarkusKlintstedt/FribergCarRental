@@ -20,7 +20,6 @@ namespace FribergCarRental.Middleware
             {
                 var handler = new JwtSecurityTokenHandler();
                 var token = handler.ReadJwtToken(jwt);
-
                 var identity = new ClaimsIdentity(token.Claims, "jwtAuth");
                 context.User = new ClaimsPrincipal(identity);
             }

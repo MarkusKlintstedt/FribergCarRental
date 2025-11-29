@@ -12,8 +12,8 @@ namespace FribergCarRental.Api.Controllers
     [Authorize(Roles = "Admin")]
     public class ApplicationUserController : ControllerBase
     {
-        public ApplicationUserRepository _applicationUserRepository { get; set; }
-        public IMapper _mapper { get; set; }
+        private readonly ApplicationUserRepository _applicationUserRepository;
+        private readonly IMapper _mapper;
 
         public ApplicationUserController(ApplicationUserRepository applicationUserRepository, IMapper mapper)
         {
@@ -26,7 +26,7 @@ namespace FribergCarRental.Api.Controllers
         {
             var users = await _applicationUserRepository.GetAllAsync();
             var userDtos = _mapper.Map<List<ApplicationUserDto>>(users);
-            return userDtos.ToList();
+            return Ok(userDtos.ToList());
         }
 
         [HttpGet("{id}")]
@@ -38,7 +38,7 @@ namespace FribergCarRental.Api.Controllers
                 return NotFound($"No user with id {id} was found");
             }
             var userDto = _mapper.Map<ApplicationUserDto>(user);
-            return userDto;
+            return Ok(userDto);
         }
 
         [HttpPost]
@@ -46,7 +46,6 @@ namespace FribergCarRental.Api.Controllers
         {
             try
             {
-                //var user = _mapper.Map<ApplicationUser>(newApplicationUserDto);
                 var user = new ApplicationUser()
                 {
                     UserName = newApplicationUserDto.Email,
@@ -57,7 +56,6 @@ namespace FribergCarRental.Api.Controllers
                     City = newApplicationUserDto.City,
                     ZipCode = newApplicationUserDto.ZipCode
                 };
-
 
                 user.UserName = newApplicationUserDto.Email;
                 var result = await _applicationUserRepository.CreateUserAsync(user, newApplicationUserDto.Password);
@@ -112,11 +110,5 @@ namespace FribergCarRental.Api.Controllers
             await _applicationUserRepository.DeleteUserAsync(user);
             return Ok();
         }
-
-
-
-
-
-
     }
 }

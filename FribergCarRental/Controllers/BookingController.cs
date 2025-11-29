@@ -29,13 +29,15 @@ namespace FribergCarRental.Controllers
         // GET: BookingViewModels
         public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirst("uid")?.Value; //  _authenticationService.GetUserId();
-            //var user = await _userManager.GetUserAsync(User);
+            var userId = User.FindFirst("uid")?.Value;
             if (userId == null)
             {
                 return NotFound("User not found.");
             }
             var bookingsResponse = await _bookingService.GetAllWithCarByUser(userId);
+            if (bookingsResponse.Success == false)
+                return HandleApiError(bookingsResponse.Message, bookingsResponse.ValidationErrors);
+
             _bookingViewModels = _mapper.Map<List<BookingViewModel>>(bookingsResponse.Data);
             return View(_bookingViewModels);
         }
@@ -44,6 +46,9 @@ namespace FribergCarRental.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var bookingResponse = await _bookingService.GetById(id);
+            if (bookingResponse.Success == false)
+                return HandleApiError(bookingResponse.Message, bookingResponse.ValidationErrors);
+
             var bookingViewModel = _mapper.Map<BookingViewModel>(bookingResponse.Data);
 
             if (bookingViewModel == null)
@@ -59,9 +64,7 @@ namespace FribergCarRental.Controllers
         {
             var carsResponse = await _carService.GetCars();
             if (carsResponse.Success == false)
-            {
-                return NotFound("No cars in list");
-            }
+                return HandleApiError(carsResponse.Message, carsResponse.ValidationErrors);
 
             ViewBag.Cars = new SelectList(carsResponse.Data, "CarId", "DisplayBrandModel");
             return View();
@@ -86,14 +89,8 @@ namespace FribergCarRental.Controllers
             };
 
             var response = await _bookingService.Create(createBookingDto);
-
-
             if (response.Success == false)
-            {
-                TempData["Error"] = response.Message + " " + response.ValidationErrors;
-                return RedirectToAction(nameof(Index));
-            }
-
+                return HandleApiError(response.Message, response.ValidationErrors);
 
             TempData["SuccessfulBooking"] =
                 $"Booking created successfully!";
@@ -106,9 +103,8 @@ namespace FribergCarRental.Controllers
         {
             var bookingResponse = await _bookingService.GetById(id);
             if (bookingResponse.Success == false)
-            {
-                return NotFound();
-            }
+                return HandleApiError(bookingResponse.Message, bookingResponse.ValidationErrors);
+
             var bookingViewModel = _mapper.Map<BookingViewModel>(bookingResponse.Data);
             ViewBag.Car = bookingResponse.Data.Car.DisplayBrandModel;
             return View(bookingViewModel);
@@ -130,9 +126,8 @@ namespace FribergCarRental.Controllers
                 booking.UserId = User.FindFirst("uid")?.Value;
                 var updateResponse = await _bookingService.Update(id, booking);
                 if (updateResponse.Success == false)
-                {
-                    return NotFound(updateResponse.Message);
-                }
+                    return HandleApiError(updateResponse.Message, updateResponse.ValidationErrors);
+
                 return RedirectToAction(nameof(Index));
             }
             return View(bookingViewModel);
@@ -143,9 +138,7 @@ namespace FribergCarRental.Controllers
         {
             var bookingResponse = await _bookingService.GetById(id);
             if (bookingResponse.Success == false)
-            {
-                return NotFound();
-            }
+                return HandleApiError(bookingResponse.Message, bookingResponse.ValidationErrors);
 
             var bookingViewModel = _mapper.Map<BookingViewModel>(bookingResponse.Data);
             if (bookingViewModel == null)
@@ -161,23 +154,18 @@ namespace FribergCarRental.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var bookingResponse = await _bookingService.GetById(id);
-
-            if (bookingResponse.Success == false)
-            {
-                TempData["Error"] = bookingResponse.Message + " " + bookingResponse.ValidationErrors;
-                return RedirectToAction(nameof(Index));
-            }
-
-            var deleteResult = await _bookingService.Delete(bookingResponse.Data.BookingId);
-
+            var deleteResult = await _bookingService.Delete(id);
             if (deleteResult.Success == false)
-            {
-                TempData["Error"] = deleteResult.Message + " " + deleteResult.ValidationErrors;
-                return RedirectToAction(nameof(Index));
-            }
+                return HandleApiError(deleteResult.Message, deleteResult.ValidationErrors);
 
             return RedirectToAction(nameof(Index));
         }
+
+        protected IActionResult HandleApiError(string message, string validationErrors)
+        {
+            TempData["Error"] = message + " " + validationErrors;
+            return RedirectToAction(nameof(Index));
+        }
+
     }
 }

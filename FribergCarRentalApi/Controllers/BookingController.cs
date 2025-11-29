@@ -12,10 +12,10 @@ namespace FribergCarRental.Api.Controllers
     [Authorize]
     public class BookingController : ControllerBase
     {
-        public BookingRepository _bookingRepository { get; set; }
-        public CarRepository _carRepository { get; set; }
-        public IMapper _mapper { get; set; }
-        public ApplicationUserRepository _applicationUserRepository { get; set; }
+        private readonly BookingRepository _bookingRepository;
+        private readonly CarRepository _carRepository;
+        private readonly IMapper _mapper;
+        private readonly ApplicationUserRepository _applicationUserRepository;
 
         public BookingController(BookingRepository bookingRepository, IMapper mapper, CarRepository carRepository, ApplicationUserRepository applicationUserRepository)
         {
@@ -86,32 +86,6 @@ namespace FribergCarRental.Api.Controllers
             return Ok(bookingDto);
         }
 
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<BookingDto>> GetById(int id)
-        //{
-        //    var booking = await _bookingRepository.GetByIdAsync(id);
-        //    if (booking == null)
-        //        return NotFound();
-
-        //    return Ok(_mapper.Map<BookingDto>(booking));
-        //}
-
-        //[HttpPost]
-        //public async Task<ActionResult<BookingDto>> AddBooking([FromBody] BookingDto editBookingDto)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    var booking = _mapper.Map<Booking>(editBookingDto);
-        //    await _bookingRepository.AddAsync(booking);
-        //    await _bookingRepository.SaveChangesAsync();
-
-        //    var createdBookingDto = _mapper.Map<BookingDto>(booking);
-        //    return CreatedAtAction(nameof(GetById), new { id = booking.CarId }, createdBookingDto);
-        //}
-
         [HttpPut("{id:int}")]
         public async Task<ActionResult> UpdateBooking(int id, [FromBody] EditBookingDto editBookingDto)
         {
@@ -152,22 +126,6 @@ namespace FribergCarRental.Api.Controllers
             return Ok();
         }
 
-        //[HttpGet("allwithcaranduser")]
-        //public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsWithCarAndUser()
-        //{
-        //    var bookings = await _bookingRepository.GetAllAsync();
-        //    var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
-        //    return Ok(bookingDtos);
-        //}
-
-        //[HttpGet("allwithcar")]
-        //public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllWithCar()
-        //{
-        //    var bookings = await _bookingRepository.GetAllWithCarAsync();
-        //    var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
-        //    return Ok(bookingDtos);
-        //}
-
         [HttpGet("AllByUserId/{userId}")]
         public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsByUser(string userId)
         {
@@ -175,26 +133,6 @@ namespace FribergCarRental.Api.Controllers
             var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
             return Ok(bookingDtos);
         }
-
-        //[HttpGet("withcar/{id}")]
-        //public async Task<ActionResult<BookingDto>> GetBookingWithCarById(int id)
-        //{
-        //    var booking = await _bookingRepository.GetByIdAsync(id);
-        //    if (booking == null)
-        //        return NotFound();
-
-        //    var editBookingDto = _mapper.Map<BookingDto>(booking);
-        //    return Ok(editBookingDto);
-        //}
-
-        [HttpGet("AllByCarId/{carId}")]
-        public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsByCar(int carId)
-        {
-            var bookings = await _bookingRepository.GetAllByCarIdAsync(carId);
-            var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
-            return Ok(bookingDtos);
-        }
     }
-
 }
 

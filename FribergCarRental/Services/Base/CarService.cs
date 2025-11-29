@@ -110,8 +110,40 @@ namespace FribergCarRental.Services.Base
             {
                 response = ConvertApiExceptions<int>(aex);
             }
-
             return response;
         }
+
+        public async Task<Response<int>> AddImage(CreateImageDto createImageDto)
+        {
+            Response<int> response = new();
+            try
+            {
+                await GetBearerToken();
+                await _client.AddImageAsync(createImageDto);
+                response.Success = true;
+            }
+            catch (ApiException aex)
+            {
+                response = ConvertApiExceptions<int>(aex);
+            }
+            return response;
+        }
+
+        public async Task<Response<int>> DeleteImage(int carId, int imageId)
+        {
+            Response<int> response = new();
+            try
+            {
+                await GetBearerToken();
+                await _client.DeleteImageAsync(carId, imageId);
+                response.Success = true;
+            }
+            catch (ApiException aex)
+            {
+                response = ConvertApiExceptions<int>(aex);
+            }
+            return response;
+        }
+
     }
 }

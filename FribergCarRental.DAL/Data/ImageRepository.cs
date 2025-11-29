@@ -1,5 +1,4 @@
 ﻿using FribergCarRental.Core.Classes;
-using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRental.DAL.Data
 {
@@ -9,9 +8,9 @@ namespace FribergCarRental.DAL.Data
         {
         }
 
-        public async Task<IEnumerable<Image>> GetAllImagesByCarIdAsync(int id)
-        {
-            return await applicationDbContext.Images.Where(i => i.CarId == id).ToListAsync();
-        }
+        //public async Task<IEnumerable<Image>> GetAllImagesByCarIdAsync(int id)
+        //{
+        //    return await applicationDbContext.Images.Where(i => i.CarId == id).ToListAsync();
+        //}
     }
 }

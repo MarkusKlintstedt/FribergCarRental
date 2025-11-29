@@ -18,14 +18,11 @@ namespace FribergCarRental.Services.Authentication
         public async Task<bool> AuthenticateAsync(LoginUserDto loginUserDto)
         {
             var response = await httpClient.LoginAsync(loginUserDto);
-
             if (response == null || string.IsNullOrEmpty(response.Token))
                 return false;
 
             httpContextAccessor.HttpContext.Response.Cookies.Append(
-                "jwtToken",
-                response.Token,
-                new CookieOptions
+                "jwtToken", response.Token, new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,

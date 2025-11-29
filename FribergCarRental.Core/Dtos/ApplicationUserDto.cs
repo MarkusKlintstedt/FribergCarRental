@@ -17,10 +17,5 @@ namespace FribergCarRental.Core.Dtos
         [EmailAddress]
         public string Email { get; set; }
         public string Id { get; set; }
-        //public string? PhoneNumber { get; set; }
-        //public string? test { get; set; }
-
-
-
     }
 }

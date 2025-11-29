@@ -12,7 +12,6 @@ namespace FribergCarRental.Controllers
         private readonly IMapper _mapper;
         private ApplicationUserService _applicationUserService;
 
-
         public AuthController(IAuthService authenticationService, IMapper mapper, ApplicationUserService applicationUserService)
         {
             this.authenticationService = authenticationService;
@@ -64,8 +63,6 @@ namespace FribergCarRental.Controllers
         }
 
         // POST: User/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register([Bind("Password,FirstName,LastName,Address,City,ZipCode,Email")] CreateUserViewModel userViewModel)
@@ -79,7 +76,6 @@ namespace FribergCarRental.Controllers
                     return NotFound();
                 }
                 return RedirectToAction("Index", "Home");
-
             }
             return View(userViewModel);
         }

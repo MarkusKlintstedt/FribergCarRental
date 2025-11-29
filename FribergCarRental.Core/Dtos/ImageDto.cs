@@ -9,7 +9,5 @@ namespace FribergCarRental.Core.Dtos
         [MaxLength(100)]
         public string Path { get; set; } = "";
         public int CarId { get; set; }
-        //public CarDto? Car { get; set; }
-
     }
 }

@@ -11,16 +11,10 @@ namespace FribergCarRental.Data
             CreateMap<CarDto, CarViewModel>().ReverseMap();
             CreateMap<BookingDto, BookingViewModel>().ReverseMap();
             CreateMap<BookingViewModel, EditBookingDto>();
-
             CreateMap<ImageDto, ImageViewModel>().ReverseMap();
-            CreateMap<CreateUserViewModel, CreateApplicationUserDto>().ReverseMap();
+            CreateMap<CreateUserViewModel, CreateApplicationUserDto>();
             CreateMap<UserViewModel, EditApplicationUserDto>();
-
-            CreateMap<ApplicationUserDto, UserViewModel>()
-                .ReverseMap();
-            //.ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            //.ForMember(dest => dest.SecurityStamp, opt => opt.Ignore())
-            //.ForSourceMember(src => src.NewPassword, opt => opt.DoNotValidate());
+            CreateMap<ApplicationUserDto, UserViewModel>().ReverseMap();
         }
     }
 }
